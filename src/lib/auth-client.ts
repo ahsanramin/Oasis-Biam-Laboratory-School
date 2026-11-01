@@ -2,13 +2,11 @@ import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 
 /**
- * Determine the base URL for the Better Auth server.
+ * Better Auth Client Configuration
  * 
- * - If you are using Option A (Direct Cross-Domain): 
- *   Set NEXT_PUBLIC_BETTER_AUTH_URL to "https://olbs-server.vercel.app"
- * 
- * - If you are using Option B (Vercel Rewrites - Recommended):
- *   Set NEXT_PUBLIC_BETTER_AUTH_URL to "https://oasis-biam-laboratory-school.vercel.app"
+ * Using Vercel Rewrites: The browser thinks it is talking to the frontend,
+ * but vercel.json proxies the /api requests to the backend. This eliminates 
+ * all cross-domain cookie issues.
  */
 const getAuthBaseURL = () => {
   // 1. Prioritize the explicit Better Auth URL environment variable
@@ -21,19 +19,18 @@ const getAuthBaseURL = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
 
-  // 3. Fallback for local development if env vars are missing
+  // 3. Fallback for local development
   return "http://localhost:5000";
 };
 
 export const authClient = createAuthClient({
-  // Remove any trailing slashes to prevent double-slash errors in API calls
+  // Remove any trailing slashes to prevent double-slash errors
   baseURL: getAuthBaseURL().replace(/\/+$/, ""),
   
-  // Keep your plugins
   plugins: [inferAdditionalFields()],
   
   fetchOptions: {
-    // CRITICAL: This must be "include" for cross-origin or proxy cookies to work
+    // CRITICAL: This must be "include" to send cookies
     credentials: "include", 
   },
 });
@@ -44,7 +41,7 @@ export const {
   signIn, 
   signUp, 
   signOut,
-  getSession, // Useful for server components
+  getSession, 
 } = authClient;
 
 // Types for your custom user fields
