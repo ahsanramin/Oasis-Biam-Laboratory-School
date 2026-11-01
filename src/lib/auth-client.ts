@@ -1,23 +1,53 @@
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 
-// Better Auth সার্ভার আপনার Express Backend-এ রান করছে।
-// লোকালহোস্টে এটি http://localhost:5000 হবে।
-// Vercel-এ এটি আপনার Backend-এর Vercel URL হবে (যেমন: https://your-backend.vercel.app)।
-const AUTH_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-).replace(/\/+$/, ""); // Removes trailing slashes
+/**
+ * Determine the base URL for the Better Auth server.
+ * 
+ * - If you are using Option A (Direct Cross-Domain): 
+ *   Set NEXT_PUBLIC_BETTER_AUTH_URL to "https://olbs-server.vercel.app"
+ * 
+ * - If you are using Option B (Vercel Rewrites - Recommended):
+ *   Set NEXT_PUBLIC_BETTER_AUTH_URL to "https://oasis-biam-laboratory-school.vercel.app"
+ */
+const getAuthBaseURL = () => {
+  // 1. Prioritize the explicit Better Auth URL environment variable
+  if (process.env.NEXT_PUBLIC_BETTER_AUTH_URL) {
+    return process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
+  }
+  
+  // 2. Fallback to the general API URL if the specific one is missing
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // 3. Fallback for local development if env vars are missing
+  return "http://localhost:5000";
+};
 
 export const authClient = createAuthClient({
-  baseURL: AUTH_BASE_URL,
+  // Remove any trailing slashes to prevent double-slash errors in API calls
+  baseURL: getAuthBaseURL().replace(/\/+$/, ""),
+  
+  // Keep your plugins
   plugins: [inferAdditionalFields()],
+  
   fetchOptions: {
-    credentials: "include", // Cross-domain cookies (Vercel) এর জন্য জরুরি
+    // CRITICAL: This must be "include" for cross-origin or proxy cookies to work
+    credentials: "include", 
   },
 });
 
-export const { useSession, signIn, signUp, signOut } = authClient;
+// Export the methods for easy use in your components
+export const { 
+  useSession, 
+  signIn, 
+  signUp, 
+  signOut,
+  getSession, // Useful for server components
+} = authClient;
 
+// Types for your custom user fields
 export type SessionUser = {
   id: string;
   email: string;
