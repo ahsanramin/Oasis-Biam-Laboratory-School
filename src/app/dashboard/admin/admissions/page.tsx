@@ -29,8 +29,10 @@ import {
   RefreshCw,
   Inbox,
   Download,
-  Trash2, // <-- NEW
+  Trash2,
 } from "lucide-react";
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /* ============================================================
  * Types
@@ -87,7 +89,7 @@ export default function AdminAdmissions() {
   const [filter, setFilter] = useState<"all" | AdmissionStatus>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [pdfBusyId, setPdfBusyId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null); // <-- NEW
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -173,7 +175,7 @@ export default function AdminAdmissions() {
     }
   }
 
-  /* ----- Delete application (NEW) ----- */
+  /* ----- Delete application ----- */
   async function handleDelete(item: Admission) {
     const confirmed = window.confirm(
       `Permanently delete the application for "${item.studentName}"?\n\nThis action cannot be undone.`
@@ -197,21 +199,36 @@ export default function AdminAdmissions() {
    * ============================================================ */
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="relative max-w-7xl mx-auto space-y-8 pb-20 overflow-hidden">
+      
+      {/* ===== Ambient Background Glows ===== */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/[0.04] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-500/[0.03] rounded-full blur-[120px]" />
+      </div>
+
       {/* ---------- Header ---------- */}
-      <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-6 sm:p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="relative overflow-hidden rounded-[2.5rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/[0.04]"
+      >
+        {/* Top hairline */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />
+        {/* Corner glow */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/[0.08] rounded-full blur-3xl pointer-events-none" />
+
         <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-600 uppercase tracking-widest">
-              <GraduationCap className="h-3.5 w-3.5" /> Admissions
+            <div className="inline-flex items-center gap-2 mb-3 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 ring-1 ring-inset ring-white/[0.04] text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em]">
+              <GraduationCap className="h-3.5 w-3.5" strokeWidth={2.5} /> Admissions
             </div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
               Student Applications
             </h1>
-            <p className="text-sm text-[var(--fg-muted)] mt-2 max-w-xl">
-              Review, approve, or reject incoming applications. Click{" "}
-              <strong className="text-[var(--fg)]">Details</strong> to view the
-              full application and download a PDF.
+            <p className="text-sm font-medium text-[var(--fg-muted)] mt-2 max-w-xl leading-relaxed">
+              Review, approve, or reject incoming applications. Click <strong className="text-[var(--fg)]">Details</strong> to view the full application and download a PDF.
             </p>
           </div>
 
@@ -220,75 +237,108 @@ export default function AdminAdmissions() {
             onClick={() => load(true)}
             loading={refreshing}
             disabled={refreshing}
-            className="shrink-0"
+            className="relative shrink-0 h-12 px-6 rounded-xl font-bold bg-[var(--card)]/70 backdrop-blur-md border-[var(--border)] ring-1 ring-inset ring-white/[0.04] hover:border-[var(--primary)]/40 hover:bg-[var(--card)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden"
           >
-            {!refreshing && <RefreshCw className="h-4 w-4 mr-2" />}
+            <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent pointer-events-none" />
+            {!refreshing && <RefreshCw className="h-4 w-4 mr-2 group-hover:rotate-180 transition-transform duration-700" strokeWidth={2.5} />}
             Refresh
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* ---------- Stats ---------- */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Total" value={stats.total} icon={FileText} color="text-blue-500" bg="bg-blue-500/10" />
-        <StatCard label="Pending" value={stats.pending} icon={Clock} color="text-amber-500" bg="bg-amber-500/10" />
-        <StatCard label="Approved" value={stats.approved} icon={CheckCircle} color="text-emerald-500" bg="bg-emerald-500/10" />
-        <StatCard label="Rejected" value={stats.rejected} icon={XCircle} color="text-red-500" bg="bg-red-500/10" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard label="Total Applications" value={stats.total} icon={FileText} color="text-blue-500" bg="bg-blue-500/10" ring="ring-blue-500/20" />
+        <StatCard label="Pending Review" value={stats.pending} icon={Clock} color="text-amber-500" bg="bg-amber-500/10" ring="ring-amber-500/20" />
+        <StatCard label="Approved" value={stats.approved} icon={CheckCircle} color="text-emerald-500" bg="bg-emerald-500/10" ring="ring-emerald-500/20" />
+        <StatCard label="Rejected" value={stats.rejected} icon={XCircle} color="text-red-500" bg="bg-red-500/10" ring="ring-red-500/20" />
       </div>
 
       {/* ---------- Filters + Search ---------- */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex p-1 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+        className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+      >
+        {/* Filter Tabs */}
+        <div className="flex p-1.5 rounded-2xl bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] ring-1 ring-inset ring-white/[0.04]">
           {(["all", "pending", "approved", "rejected"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg capitalize transition-all ${
+              className={`relative px-4 sm:px-5 py-2 text-[11px] font-black uppercase tracking-[0.14em] rounded-xl capitalize transition-all duration-300 overflow-hidden ${
                 filter === tab
-                  ? "bg-[var(--bg)] shadow-sm"
+                  ? "text-[var(--fg)]"
                   : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
               }`}
             >
+              {filter === tab && (
+                <motion.div
+                  layoutId="active-filter-tab"
+                  className="absolute inset-0 bg-[var(--card)] rounded-xl shadow-sm ring-1 ring-inset ring-white/[0.08] -z-10"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
               {tab}
             </button>
           ))}
         </div>
 
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, phone, email..."
-            className="w-full pl-11 pr-10 py-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg)] text-xs font-bold"
-            >
-              ✕
-            </button>
-          )}
+        {/* Search */}
+        <div className="relative w-full sm:w-80 group">
+          <div className="absolute inset-0 -m-1 rounded-xl bg-gradient-to-r from-brand-500/15 via-transparent to-emerald-500/15 opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-500 pointer-events-none" />
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)] group-focus-within:text-[var(--primary)] transition-colors duration-300 z-10" strokeWidth={2.5} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, phone, email..."
+              className="w-full pl-11 pr-10 h-12 rounded-xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md text-sm font-medium outline-none hover:border-[var(--primary)]/30 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-[var(--bg-soft)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+              >
+                <XCircle className="h-4 w-4" strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ---------- Content ---------- */}
       {loading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[420px] rounded-2xl bg-[var(--card)] animate-pulse" />
+            <div key={i} className="h-[480px] rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-24 text-center border-2 border-dashed border-[var(--border)] rounded-3xl">
-          <Inbox className="h-14 w-14 mx-auto mb-4 opacity-30" />
-          <h3 className="text-lg font-bold mb-1">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="relative py-24 text-center border border-dashed border-[var(--border)] rounded-[2.5rem] bg-[var(--card)]/40 backdrop-blur-md flex flex-col items-center overflow-hidden"
+        >
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/[0.06] rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative mb-6">
+            <div className="absolute inset-0 -m-3 bg-emerald-500/10 rounded-full blur-2xl" />
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500/15 to-transparent ring-1 ring-emerald-500/20 grid place-items-center">
+              <div className="w-16 h-16 rounded-full bg-[var(--bg-soft)] ring-1 ring-[var(--border)] grid place-items-center">
+                <Inbox className="h-8 w-8 text-[var(--fg-muted)] opacity-60" strokeWidth={2.5} />
+              </div>
+            </div>
+          </div>
+
+          <h3 className="text-2xl font-bold mb-2 tracking-tight">
             {items.length === 0
               ? "No applications yet"
               : "No applications match your filters"}
           </h3>
-          <p className="text-sm text-[var(--fg-muted)] mb-6">
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-6 max-w-sm mx-auto">
             {items.length === 0
               ? "Applications submitted from the public admission page will appear here."
               : "Try clearing your search or switching tabs."}
@@ -300,15 +350,16 @@ export default function AdminAdmissions() {
                 setSearch("");
                 setFilter("all");
               }}
+              className="h-11 px-6 rounded-xl font-bold bg-[var(--card)] hover:bg-[var(--bg-soft)] hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-inset ring-white/[0.04]"
             >
               Clear Filters
             </Button>
           )}
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           <AnimatePresence mode="popLayout">
-            {filtered.map((a) => {
+            {filtered.map((a, i) => {
               const isUpdating = updatingId === a._id;
               const isPdfBusy = pdfBusyId === a._id;
               const isDeleting = deletingId === a._id;
@@ -318,17 +369,25 @@ export default function AdminAdmissions() {
                 <motion.div
                   key={a._id}
                   layout
-                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex flex-col p-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:shadow-lg hover:border-emerald-500/30 transition-all"
+                  transition={{ duration: 0.4, delay: (i % 3) * 0.05, ease: EASE }}
+                  className="group relative flex flex-col p-6 rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md ring-1 ring-inset ring-white/[0.04] hover:border-[var(--primary)]/40 hover:shadow-2xl hover:shadow-black/[0.06] hover:-translate-y-1.5 transition-all duration-500 overflow-hidden"
                 >
+                  {/* Top hairline */}
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent z-20 pointer-events-none" />
+                  
+                  {/* Outer hover aura */}
+                  <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-brand-500/[0.08] via-transparent to-emerald-500/[0.06] opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500 -z-10 pointer-events-none" />
+
                   {/* Card header */}
-                  <div className="flex items-start justify-between gap-2 mb-4">
+                  <div className="relative flex items-start justify-between gap-3 mb-5">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-lg font-bold truncate">{a.studentName}</h3>
-                      <p className="text-sm font-semibold text-emerald-500 truncate">
+                      <h3 className="text-xl font-bold truncate tracking-tight group-hover:text-[var(--primary)] transition-colors duration-300">
+                        {a.studentName}
+                      </h3>
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-400 truncate mt-1">
                         Applying for: {a.classApplyingFor || "N/A"}
                       </p>
                     </div>
@@ -336,7 +395,7 @@ export default function AdminAdmissions() {
                   </div>
 
                   {/* Full info grid */}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-3 mb-4 text-sm">
+                  <div className="relative grid grid-cols-2 gap-x-3 gap-y-4 mb-5">
                     <InfoLine icon={User} label="Father" value={a.fatherName} />
                     <InfoLine icon={Users} label="Mother" value={a.motherName} />
                     <InfoLine icon={Phone} label="Phone" value={a.phone} />
@@ -348,34 +407,39 @@ export default function AdminAdmissions() {
                   </div>
 
                   {/* Addresses */}
-                  <div className="space-y-2 mb-4 text-xs text-[var(--fg-muted)]">
-                    <div className="flex items-start gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-emerald-500" />
-                      <span className="line-clamp-2">
-                        <b className="text-[var(--fg)]">Current:</b>{" "}
-                        {a.currentAddress || "—"}
+                  <div className="relative space-y-3 mb-5 p-4 rounded-2xl bg-[var(--bg-soft)]/50 border border-[var(--border)] ring-1 ring-inset ring-white/[0.02]">
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5">
+                        <MapPin className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      </div>
+                      <span className="line-clamp-2 leading-relaxed">
+                        <b className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] block mb-0.5">Current Address</b>
+                        <span className="text-[var(--fg)] font-medium">{a.currentAddress || "—"}</span>
                       </span>
                     </div>
-                    <div className="flex items-start gap-1.5">
-                      <Home className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-500" />
-                      <span className="line-clamp-2">
-                        <b className="text-[var(--fg)]">Permanent:</b>{" "}
-                        {a.permanentAddress || "—"}
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-500 shrink-0 mt-0.5">
+                        <Home className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      </div>
+                      <span className="line-clamp-2 leading-relaxed">
+                        <b className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] block mb-0.5">Permanent Address</b>
+                        <span className="text-[var(--fg)] font-medium">{a.permanentAddress || "—"}</span>
                       </span>
                     </div>
                   </div>
 
                   {/* Actions — 2 rows */}
-                  <div className="pt-4 border-t border-[var(--border)] mt-auto space-y-2">
+                  <div className="relative pt-5 border-t border-[var(--border)] mt-auto space-y-2.5">
                     {/* Row 1: Details · PDF · Delete */}
                     <div className="flex gap-2">
                       <Link href={`/dashboard/admin/admissions/${a._id}`} className="flex-1">
                         <Button
                           variant="outline"
-                          className="w-full text-blue-600 border-blue-200 hover:bg-blue-500/5"
+                          className="relative w-full h-10 rounded-xl text-[11px] font-black uppercase tracking-[0.14em] text-blue-600 bg-blue-500/[0.04] border-blue-500/20 hover:bg-blue-500/10 hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-inset ring-white/[0.04] group/btn overflow-hidden"
                           disabled={isDeleting}
                         >
-                          <Eye className="h-4 w-4 mr-1.5" /> Details
+                          <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                          <Eye className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} /> Details
                         </Button>
                       </Link>
                       <Button
@@ -384,9 +448,9 @@ export default function AdminAdmissions() {
                         loading={isPdfBusy}
                         disabled={isBusy && !isPdfBusy}
                         title="Download PDF"
-                        className="px-3 shrink-0 text-purple-600 border-purple-200 hover:bg-purple-500/5"
+                        className="h-10 px-3 shrink-0 rounded-xl text-purple-600 bg-purple-500/[0.04] border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-inset ring-white/[0.04]"
                       >
-                        {!isPdfBusy && <Download className="h-4 w-4" />}
+                        {!isPdfBusy && <Download className="h-4 w-4" strokeWidth={2.5} />}
                       </Button>
                       <Button
                         variant="outline"
@@ -394,9 +458,9 @@ export default function AdminAdmissions() {
                         loading={isDeleting}
                         disabled={isBusy && !isDeleting}
                         title="Delete application"
-                        className="px-3 shrink-0 text-rose-600 border-rose-200 hover:bg-rose-500/5"
+                        className="h-10 px-3 shrink-0 rounded-xl text-rose-600 bg-rose-500/[0.04] border-rose-500/20 hover:bg-rose-500/10 hover:border-rose-500/40 hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-inset ring-white/[0.04]"
                       >
-                        {!isDeleting && <Trash2 className="h-4 w-4" />}
+                        {!isDeleting && <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
                       </Button>
                     </div>
 
@@ -404,21 +468,23 @@ export default function AdminAdmissions() {
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
-                        className="flex-1 text-emerald-600 border-emerald-200 hover:bg-emerald-500/5"
+                        className="relative flex-1 h-10 rounded-xl text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600 bg-emerald-500/[0.04] border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-inset ring-white/[0.04] group/btn overflow-hidden"
                         onClick={() => updateStatus(a._id, "approved")}
                         disabled={isBusy || a.status === "approved"}
                         loading={isUpdating && a.status !== "approved"}
                       >
-                        <Check className="h-4 w-4 mr-1.5" /> Approve
+                        <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        <Check className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} /> Approve
                       </Button>
                       <Button
                         variant="outline"
-                        className="flex-1 text-red-600 border-red-200 hover:bg-red-500/5"
+                        className="relative flex-1 h-10 rounded-xl text-[11px] font-black uppercase tracking-[0.14em] text-red-600 bg-red-500/[0.04] border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-inset ring-white/[0.04] group/btn overflow-hidden"
                         onClick={() => updateStatus(a._id, "rejected")}
                         disabled={isBusy || a.status === "rejected"}
                         loading={isUpdating && a.status !== "rejected"}
                       >
-                        <Ban className="h-4 w-4 mr-1.5" /> Reject
+                        <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        <Ban className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} /> Reject
                       </Button>
                     </div>
                   </div>
@@ -433,7 +499,7 @@ export default function AdminAdmissions() {
 }
 
 /* ============================================================
- * Sub-components (unchanged)
+ * Sub-components
  * ============================================================ */
 
 function StatCard({
@@ -442,21 +508,27 @@ function StatCard({
   icon: Icon,
   color,
   bg,
+  ring,
 }: {
   label: string;
   value: number;
   icon: any;
   color: string;
   bg: string;
+  ring: string;
 }) {
   return (
-    <div className="flex items-center gap-3 p-4 rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-      <div className={`p-2.5 rounded-xl ${bg} ${color}`}>
-        <Icon className="h-5 w-5" />
+    <div className="relative flex items-center gap-4 p-5 rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-300 overflow-hidden group">
+      {/* Top hairline */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+      
+      <div className={`relative shrink-0 w-12 h-12 rounded-2xl grid place-items-center ring-1 ring-inset ${bg} ${ring} ${color} group-hover:scale-110 transition-transform duration-500`}>
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
+        <Icon className="h-5 w-5 relative" strokeWidth={2.5} />
       </div>
       <div className="min-w-0">
-        <p className="text-2xl font-black leading-none">{value}</p>
-        <p className="text-xs text-[var(--fg-muted)] mt-1 font-medium truncate">
+        <p className="text-2xl sm:text-3xl font-black leading-none tabular-nums tracking-tight">{value}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] mt-1.5 truncate">
           {label}
         </p>
       </div>
@@ -474,13 +546,15 @@ function InfoLine({
   value?: string;
 }) {
   return (
-    <div className="flex items-start gap-1.5 min-w-0">
-      <Icon className="h-3.5 w-3.5 mt-0.5 text-[var(--fg-muted)] shrink-0" />
+    <div className="flex items-start gap-2 min-w-0">
+      <div className="p-1 rounded-md bg-[var(--bg-soft)] border border-[var(--border)] shrink-0 mt-0.5">
+        <Icon className="h-3 w-3 text-[var(--fg-muted)]" strokeWidth={2.5} />
+      </div>
       <div className="min-w-0">
-        <p className="text-[10px] uppercase font-bold text-[var(--fg-muted)] leading-none mb-0.5">
+        <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] leading-none mb-1">
           {label}
         </p>
-        <p className="text-xs font-medium truncate" title={value || "—"}>
+        <p className="text-[11px] font-bold text-[var(--fg)] truncate tracking-tight" title={value || "—"}>
           {value || "—"}
         </p>
       </div>
@@ -491,21 +565,21 @@ function InfoLine({
 function StatusBadge({ status }: { status: AdmissionStatus }) {
   if (status === "approved") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 text-xs font-bold uppercase whitespace-nowrap">
-        <CheckCircle className="h-3.5 w-3.5" /> Approved
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-[0.14em] ring-1 ring-inset ring-emerald-500/20 shadow-sm shadow-emerald-500/10 whitespace-nowrap shrink-0">
+        <CheckCircle className="h-3 w-3" strokeWidth={2.5} /> Approved
       </span>
     );
   }
   if (status === "rejected") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/10 text-red-600 text-xs font-bold uppercase whitespace-nowrap">
-        <XCircle className="h-3.5 w-3.5" /> Rejected
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 text-[9px] font-black uppercase tracking-[0.14em] ring-1 ring-inset ring-red-500/20 shadow-sm shadow-red-500/10 whitespace-nowrap shrink-0">
+        <XCircle className="h-3 w-3" strokeWidth={2.5} /> Rejected
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 text-xs font-bold uppercase whitespace-nowrap">
-      <Clock className="h-3.5 w-3.5" /> Pending
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-[0.14em] ring-1 ring-inset ring-amber-500/20 shadow-sm shadow-amber-500/10 whitespace-nowrap shrink-0">
+      <Clock className="h-3 w-3" strokeWidth={2.5} /> Pending
     </span>
   );
 }

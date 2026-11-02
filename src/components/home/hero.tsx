@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowRight, MapPin, Users, Award, 
-  PlayCircle, Star, Sparkles, Activity
+import {
+  ArrowRight, PlayCircle, Star, Sparkles, Activity
 } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 // ==========================================
 // SLIDE DATA
@@ -75,35 +76,6 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 }
 
 // ==========================================
-// WORD-BY-WORD TEXT REVEAL
-// ==========================================
-function RevealWords({ 
-  words, 
-  className = "", 
-  delay = 0,
-}: { 
-  words: string[]; 
-  className?: string; 
-  delay?: number;
-}) {
-  return (
-    <span className={`inline-flex flex-wrap justify-center gap-x-3 md:gap-x-4 ${className}`}>
-      {words.map((word, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: delay + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-block"
-        >
-          {word}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
-
-// ==========================================
 // LIVE VISITOR INDICATOR
 // ==========================================
 function LiveVisitors() {
@@ -119,24 +91,26 @@ function LiveVisitors() {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.2, duration: 0.6 }}
-      className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-xs text-white/70 font-semibold"
+      transition={{ delay: 1.2, duration: 0.6, ease: EASE }}
+      className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/15 ring-1 ring-inset ring-white/10 text-[11px] text-white/75 font-black uppercase tracking-[0.14em] shadow-lg shadow-black/20"
     >
       <span className="relative flex h-2 w-2">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-sm shadow-emerald-400/50" />
       </span>
-      <Activity className="h-3 w-3 text-emerald-400" />
-      <span><span className="text-white font-black">{count}</span> people viewing</span>
+      <Activity className="h-3 w-3 text-emerald-400" strokeWidth={2.5} />
+      <span className="normal-case tracking-normal">
+        <span className="text-white font-black tabular-nums">{count}</span> people viewing
+      </span>
     </motion.div>
   );
 }
 
 // ==========================================
-// FLOATING PARTICLES (Reduced for performance)
+// FLOATING PARTICLES
 // ==========================================
 function FloatingParticles() {
-  const particles = useMemo(() => 
+  const particles = useMemo(() =>
     Array.from({ length: 12 }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -144,7 +118,7 @@ function FloatingParticles() {
       duration: Math.random() * 20 + 20,
       delay: Math.random() * 15,
       opacity: Math.random() * 0.3 + 0.15,
-    })), 
+    })),
   []);
 
   return (
@@ -170,7 +144,7 @@ function FloatingParticles() {
 }
 
 // ==========================================
-// AURORA BACKGROUND (Simplified)
+// AURORA BACKGROUND
 // ==========================================
 function AuroraBackground() {
   return (
@@ -227,10 +201,10 @@ export function Hero() {
   const slide = SLIDES[currentSlide];
 
   return (
-    <section 
+    <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative h-[100svh] min-h-[640px] max-h-[900px] w-full flex flex-col justify-between overflow-hidden bg-[#020617]"
+      className="relative w-full min-h-[100svh] flex flex-col justify-between overflow-hidden bg-[#020617]"
     >
       
       {/* ===== LAYER 1: Background Image ===== */}
@@ -247,7 +221,7 @@ export function Hero() {
             src={slide.image}
             alt="Oasis BIAM Campus"
             fill
-            className="object-cover"
+            className="object-cover object-center"
             priority
             quality={100}
             unoptimized
@@ -256,19 +230,22 @@ export function Hero() {
       </AnimatePresence>
 
       {/* ===== LAYER 2: Overlays ===== */}
-      <div className="absolute inset-0 z-0 bg-[#020617]/60" />
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,#020617_90%)]" />
+      <div className="absolute inset-0 z-0 bg-[#020617]/65" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_15%,#020617_95%)]" />
       <div className="absolute top-0 inset-x-0 h-32 z-0 bg-gradient-to-b from-[#020617] to-transparent" />
       <div className="absolute bottom-0 inset-x-0 h-40 z-0 bg-gradient-to-t from-[#020617] to-transparent" />
 
-      {/* ===== LAYER 3: Aurora + Particles + Grid ===== */}
+      {/* ===== LAYER 3: Aurora + Particles + Grid + Spotlight ===== */}
       <AuroraBackground />
       <FloatingParticles />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px] opacity-20 z-0 pointer-events-none" />
       <motion.div style={{ background: spotlight }} className="absolute inset-0 z-0 pointer-events-none" />
 
-      {/* ===== LAYER 4: MAIN CONTENT (Centered, properly sized) ===== */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 lg:px-8 pt-20 pb-4">
+      {/* Top edge-light hairline */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent z-10 pointer-events-none" />
+
+      {/* ===== LAYER 4: MAIN CONTENT ===== */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-20 mt-16">
         
         <AnimatePresence mode="wait">
           <motion.div
@@ -284,78 +261,83 @@ export function Hero() {
             <motion.div
               initial={{ opacity: 0, y: -15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-white text-xs md:text-sm font-bold mb-6 shadow-2xl group cursor-pointer hover:bg-white/10 transition-colors"
+              transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
+              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/15 ring-1 ring-inset ring-white/10 text-white text-[11px] md:text-xs font-black uppercase tracking-[0.16em] mb-7 shadow-2xl shadow-black/30 group cursor-pointer hover:bg-white/[0.1] hover:border-white/25 transition-all duration-300"
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              {slide.badge}
-              <ArrowRight className="h-3.5 w-3.5 text-white/60 group-hover:translate-x-1 transition-all" />
+              <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+              <Sparkles className="h-3.5 w-3.5 text-amber-400 relative" strokeWidth={2.5} />
+              <span className="relative normal-case tracking-normal">{slide.badge}</span>
+              <ArrowRight className="h-3.5 w-3.5 text-white/60 group-hover:translate-x-1 transition-all duration-300 relative" strokeWidth={2.5} />
             </motion.div>
 
-            {/* ===== MASSIVE TYPOGRAPHY - Scaled for viewport ===== */}
-            <h1 
-              className="font-black text-white leading-[0.95] tracking-tighter font-display mb-5 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] w-full"
-              style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
-            >
-              <RevealWords 
-                words={slide.titleWords} 
-                delay={0.3}
-                className="text-white/95"
-              />
-              
-              <motion.span 
+            {/* ===== HEADLINE (Fixed to render properly) ===== */}
+            <h1 className="font-black text-white text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tighter font-display mb-6 drop-shadow-[0_8px_32px_rgba(0,0,0,0.9)] w-full flex flex-col items-center gap-1 md:gap-2">
+              <motion.span
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="gradient-text block my-1 md:my-2"
+                transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
+                className="block text-white/95"
+              >
+                {slide.titleWords.join(" ")}
+              </motion.span>
+              
+              <motion.span
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
+                className="gradient-text block"
               >
                 {slide.highlight}
               </motion.span>
               
-              <RevealWords 
-                words={slide.titleWords2} 
-                delay={0.9}
-                className="text-white/95"
-              />
+              <motion.span
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
+                className="block text-white/95"
+              >
+                {slide.titleWords2.join(" ")}
+              </motion.span>
             </h1>
 
-            {/* Subtitle - also clamped */}
-            <motion.p 
+            {/* Subtitle */}
+            <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 1.2 }}
-              className="text-white/80 font-medium leading-relaxed mb-8 text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] max-w-2xl"
-              style={{ fontSize: "clamp(0.9rem, 1.3vw, 1.15rem)" }}
+              transition={{ duration: 0.7, delay: 1.0, ease: EASE }}
+              className="text-white/85 text-sm sm:text-base lg:text-lg font-medium leading-relaxed mb-9 text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] max-w-2xl mx-auto"
             >
               {slide.subtitle}
             </motion.p>
 
             {/* CTAs */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 1.4 }}
-              className="flex flex-col sm:flex-row gap-3 mb-6 w-full sm:w-auto justify-center"
+              transition={{ duration: 0.7, delay: 1.2, ease: EASE }}
+              className="flex flex-col sm:flex-row gap-3 mb-7 w-full sm:w-auto justify-center"
             >
               <Link href={slide.ctaLink} className="w-full sm:w-auto">
-                <Button 
-                  size="lg" 
-                  className="relative w-full sm:w-auto h-13 px-8 text-base font-bold rounded-xl group bg-white text-black hover:bg-gray-100 shadow-[0_0_30px_-8px_rgba(255,255,255,0.4)] hover:shadow-[0_0_45px_-8px_rgba(255,255,255,0.6)] hover:scale-105 transition-all duration-300 overflow-hidden"
+                <Button
+                  size="lg"
+                  className="relative w-full sm:w-auto h-[52px] px-8 text-base font-bold rounded-xl group bg-white text-black hover:bg-gray-50 shadow-[0_0_30px_-8px_rgba(255,255,255,0.4)] hover:shadow-[0_0_45px_-8px_rgba(255,255,255,0.7)] hover:scale-[1.02] transition-all duration-300 overflow-hidden ring-1 ring-inset ring-white/60"
                 >
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-black/[0.08] to-transparent" />
                   <span className="relative z-10 flex items-center">
                     {slide.ctaText}
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" strokeWidth={2.5} />
                   </span>
                 </Button>
               </Link>
               <Link href="/about" className="w-full sm:w-auto">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="w-full sm:w-auto h-13 px-8 text-base font-bold border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-md rounded-xl group"
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="relative w-full sm:w-auto h-[52px] px-8 text-base font-bold border border-white/25 text-white hover:bg-white/[0.08] backdrop-blur-xl rounded-xl group ring-1 ring-inset ring-white/10 hover:border-white/40 overflow-hidden"
                 >
-                  <PlayCircle className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                  Watch Tour
+                  <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                  <PlayCircle className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-300" strokeWidth={2.5} />
+                  <span className="relative">Watch Tour</span>
                 </Button>
               </Link>
             </motion.div>
@@ -368,8 +350,11 @@ export function Hero() {
 
       </div>
 
-      {/* ===== LAYER 5: INLINE TRUST BAR (Always visible at bottom) ===== */}
-      <div className="relative z-20 border-t border-white/10 bg-black/60 backdrop-blur-2xl">
+      {/* ===== LAYER 5: INLINE TRUST BAR (Anchored to bottom) ===== */}
+      <div className="relative z-20 mt-auto border-t border-white/10 bg-black/60 backdrop-blur-2xl">
+        
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
@@ -377,20 +362,22 @@ export function Hero() {
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2.5">
                 {[11, 12, 13, 14].map((n) => (
-                  <div key={n} className="w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--bg-soft)] overflow-hidden">
+                  <div key={n} className="relative w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--bg-soft)] overflow-hidden ring-1 ring-inset ring-white/10 shadow-sm shadow-black/40 hover:scale-110 hover:z-10 transition-all duration-300">
                     <img src={`https://i.pravatar.cc/100?img=${n}`} alt="Parent" className="w-full h-full object-cover" />
                   </div>
                 ))}
-                <div className="w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--primary)] text-white grid place-items-center text-[10px] font-black">
+                <div className="w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--primary)] text-white grid place-items-center text-[10px] font-black ring-1 ring-inset ring-white/20 shadow-sm shadow-[var(--primary)]/30">
                   +1K
                 </div>
               </div>
               <div>
-                <div className="flex items-center gap-0.5 text-amber-400 mb-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => <Star key={i} className="w-3 h-3 fill-current" />)}
+                <div className="flex items-center gap-0.5 text-amber-400 mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="w-3 h-3 fill-current drop-shadow-sm" strokeWidth={2.5} />
+                  ))}
                 </div>
-                <p className="text-[10px] font-bold text-white/70">
-                  Trusted by <span className="text-white font-black">1,200+</span> Parents
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/60">
+                  Trusted by <span className="text-white">1,200+</span> Parents
                 </p>
               </div>
             </div>
@@ -398,28 +385,28 @@ export function Hero() {
             {/* Right: Inline Stats */}
             <div className="flex items-center gap-5 sm:gap-8">
               <div className="text-center">
-                <p className="text-lg sm:text-xl font-black text-white leading-none tracking-tight">
+                <p className="text-lg sm:text-xl font-black text-white leading-none tracking-tight tabular-nums">
                   <AnimatedCounter value={1250} suffix="+" />
                 </p>
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">Students</p>
+                <p className="text-[9px] font-black text-white/45 uppercase tracking-[0.18em] mt-1.5">Students</p>
               </div>
-              
-              <div className="w-px h-7 bg-white/10" />
-              
+
+              <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+
               <div className="text-center">
-                <p className="text-lg sm:text-xl font-black text-white leading-none tracking-tight">
+                <p className="text-lg sm:text-xl font-black text-white leading-none tracking-tight tabular-nums">
                   <AnimatedCounter value={150} suffix="+" />
                 </p>
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">Awards</p>
+                <p className="text-[9px] font-black text-white/45 uppercase tracking-[0.18em] mt-1.5">Awards</p>
               </div>
-              
-              <div className="w-px h-7 bg-white/10 hidden sm:block" />
-              
+
+              <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/15 to-transparent hidden sm:block" />
+
               <div className="text-center hidden sm:block">
-                <p className="text-lg sm:text-xl font-black text-white leading-none tracking-tight">
+                <p className="text-lg sm:text-xl font-black text-white leading-none tracking-tight tabular-nums">
                   <AnimatedCounter value={21} suffix="+" />
                 </p>
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">Years</p>
+                <p className="text-[9px] font-black text-white/45 uppercase tracking-[0.18em] mt-1.5">Years</p>
               </div>
             </div>
 
@@ -434,41 +421,41 @@ export function Hero() {
             key={s.id}
             onClick={() => setCurrentSlide(idx)}
             aria-label={`Go to slide ${idx + 1}`}
-            className={`relative h-1 rounded-full transition-all duration-500 overflow-hidden ${
-              currentSlide === idx ? "w-12 bg-white/30" : "w-1.5 bg-white/30 hover:bg-white/60"
+            className={`relative h-1 rounded-full transition-all duration-500 overflow-hidden ring-1 ring-inset ring-white/10 ${
+              currentSlide === idx ? "w-12 bg-white/25" : "w-1.5 bg-white/20 hover:bg-white/50"
             }`}
           >
             {currentSlide === idx && (
-              <motion.div 
+              <motion.div
                 key={currentSlide}
                 initial={{ x: "-100%" }}
                 animate={{ x: "0%" }}
                 transition={{ duration: 9, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-amber-400"
+                className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-amber-400 shadow-sm shadow-[var(--primary)]/50"
               />
             )}
           </button>
         ))}
       </div>
 
-      {/* ===== LAYER 7: Scroll Indicator (FIXED) ===== */}
+      {/* ===== LAYER 7: Scroll Indicator ===== */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.8 }}
+        transition={{ delay: 2, duration: 0.8, ease: EASE }}
         className="absolute bottom-[100px] right-6 hidden xl:flex flex-col items-center gap-2 z-20"
       >
-        <span 
-          className="text-[9px] font-bold text-white/40 uppercase tracking-widest"
+        <span
+          className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]"
           style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
         >
           Scroll
         </span>
-        <div className="w-5 h-8 rounded-full border border-white/30 flex justify-center pt-1.5">
+        <div className="w-5 h-8 rounded-full border border-white/30 ring-1 ring-inset ring-white/10 flex justify-center pt-1.5 bg-white/[0.04] backdrop-blur-sm">
           <motion.div
             animate={{ y: [0, 6, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-0.5 h-1.5 rounded-full bg-white/60"
+            className="w-0.5 h-1.5 rounded-full bg-white/70"
           />
         </div>
       </motion.div>

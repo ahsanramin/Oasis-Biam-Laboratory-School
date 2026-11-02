@@ -39,6 +39,8 @@ import {
   GraduationCap,
 } from "lucide-react";
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 /* ============================================================
  * Types
  * ============================================================ */
@@ -203,13 +205,16 @@ export default function AdmissionDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-4">
-        <div className="h-10 w-40 rounded-xl bg-[var(--card)] animate-pulse" />
-        <div className="h-40 rounded-3xl bg-[var(--card)] animate-pulse" />
-        <div className="h-20 rounded-2xl bg-[var(--card)] animate-pulse" />
-        <div className="h-48 rounded-2xl bg-[var(--card)] animate-pulse" />
-        <div className="h-48 rounded-2xl bg-[var(--card)] animate-pulse" />
-        <div className="h-72 rounded-2xl bg-[var(--card)] animate-pulse" />
+      <div className="relative max-w-5xl mx-auto space-y-6 pb-20 overflow-hidden">
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/[0.04] rounded-full blur-[120px]" />
+        </div>
+        <div className="h-10 w-40 rounded-xl bg-[var(--card)]/60 backdrop-blur-md animate-pulse border border-[var(--border)]" />
+        <div className="h-40 rounded-[2.5rem] bg-[var(--card)]/60 backdrop-blur-md animate-pulse border border-[var(--border)]" />
+        <div className="h-20 rounded-2xl bg-[var(--card)]/60 backdrop-blur-md animate-pulse border border-[var(--border)]" />
+        <div className="h-48 rounded-[2rem] bg-[var(--card)]/60 backdrop-blur-md animate-pulse border border-[var(--border)]" />
+        <div className="h-48 rounded-[2rem] bg-[var(--card)]/60 backdrop-blur-md animate-pulse border border-[var(--border)]" />
+        <div className="h-72 rounded-[2rem] bg-[var(--card)]/60 backdrop-blur-md animate-pulse border border-[var(--border)]" />
       </div>
     );
   }
@@ -220,22 +225,28 @@ export default function AdmissionDetailPage() {
 
   if (notFound || !data) {
     return (
-      <div className="max-w-3xl mx-auto py-24 text-center">
-        <AlertTriangle className="h-14 w-14 mx-auto mb-4 text-amber-500 opacity-60" />
-        <h2 className="text-2xl font-bold mb-2">Application not found</h2>
-        <p className="text-sm text-[var(--fg-muted)] mb-8">
-          This application may have been deleted or the link is invalid.
-        </p>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Link href="/dashboard/admin/admissions">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admissions
+      <div className="relative max-w-3xl mx-auto py-24 text-center overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-amber-500/[0.05] rounded-full blur-[100px] pointer-events-none" />
+        
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative">
+          <div className="w-20 h-20 rounded-2xl bg-amber-500/10 ring-1 ring-amber-500/20 grid place-items-center mx-auto mb-6">
+            <AlertTriangle className="h-10 w-10 text-amber-500" strokeWidth={2.5} />
+          </div>
+          <h2 className="text-3xl font-black tracking-tight mb-3">Application not found</h2>
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-8 max-w-sm mx-auto">
+            This application may have been deleted or the link is invalid.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href="/dashboard/admin/admissions">
+              <Button variant="outline" className="h-11 px-6 rounded-xl font-bold hover:bg-[var(--bg-soft)]">
+                <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={2.5} /> Back to Admissions
+              </Button>
+            </Link>
+            <Button variant="outline" onClick={() => load()} className="h-11 px-6 rounded-xl font-bold hover:bg-[var(--bg-soft)]">
+              <RefreshCw className="h-4 w-4 mr-2" strokeWidth={2.5} /> Retry
             </Button>
-          </Link>
-          <Button variant="outline" onClick={() => load()}>
-            <RefreshCw className="h-4 w-4 mr-2" /> Retry
-          </Button>
-        </div>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -247,39 +258,58 @@ export default function AdmissionDetailPage() {
   const initials = data.studentName?.charAt(0).toUpperCase() || "?";
 
   const documentCards = [
-    { key: "birthCertificateImage", label: "Birth Certificate", icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10", url: data.birthCertificateImage },
-    { key: "previousSchoolCertificateImage", label: "Previous School Certificate", icon: GraduationCap, color: "text-purple-500", bg: "bg-purple-500/10", url: data.previousSchoolCertificateImage },
-    { key: "passportPhotosImage", label: "Passport Size Photo", icon: ImageIcon, color: "text-amber-500", bg: "bg-amber-500/10", url: data.passportPhotosImage },
-    { key: "parentNidImage", label: "Parent's NID Copy", icon: CreditCard, color: "text-emerald-500", bg: "bg-emerald-500/10", url: data.parentNidImage },
+    { key: "birthCertificateImage", label: "Birth Certificate", icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10", ring: "ring-blue-500/20", url: data.birthCertificateImage },
+    { key: "previousSchoolCertificateImage", label: "Previous School Certificate", icon: GraduationCap, color: "text-purple-500", bg: "bg-purple-500/10", ring: "ring-purple-500/20", url: data.previousSchoolCertificateImage },
+    { key: "passportPhotosImage", label: "Passport Size Photo", icon: ImageIcon, color: "text-amber-500", bg: "bg-amber-500/10", ring: "ring-amber-500/20", url: data.passportPhotosImage },
+    { key: "parentNidImage", label: "Parent's NID Copy", icon: CreditCard, color: "text-emerald-500", bg: "bg-emerald-500/10", ring: "ring-emerald-500/20", url: data.parentNidImage },
   ];
 
   return (
     <>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="relative max-w-5xl mx-auto space-y-8 pb-20 overflow-hidden">
+        
+        {/* ===== Ambient Background Glows ===== */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/[0.04] rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/[0.03] rounded-full blur-[120px]" />
+        </div>
+
         {/* ----- Back link ----- */}
-        <Link
-          href="/dashboard/admin/admissions"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Admissions
-        </Link>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <Link
+            href="/dashboard/admin/admissions"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] font-black text-[var(--fg-muted)] hover:text-[var(--primary)] bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] ring-1 ring-inset ring-white/[0.04] px-4 py-2 rounded-full transition-all duration-300 group hover:-translate-x-0.5 hover:border-[var(--primary)]/30"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform duration-300" strokeWidth={2.5} /> Back to Admissions
+          </Link>
+        </motion.div>
 
         {/* ----- Hero ----- */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-6 sm:p-8"
+          transition={{ duration: 0.6, ease: EASE }}
+          className="relative overflow-hidden rounded-[2.5rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/[0.04]"
         >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-2xl font-black bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg">
-                {initials}
+          {/* Top hairline */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent pointer-events-none" />
+          {/* Corner glow */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/[0.08] rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-5 min-w-0">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 -m-1 rounded-2xl bg-emerald-500/25 blur-md opacity-70" />
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl grid place-items-center text-2xl sm:text-3xl font-black bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg border border-white/20 ring-1 ring-inset ring-white/20">
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.2] via-transparent to-transparent pointer-events-none" />
+                  <span className="relative drop-shadow-md">{initials}</span>
+                </div>
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight truncate">
+                <h1 className="text-2xl sm:text-4xl font-black tracking-tight truncate">
                   {data.studentName}
                 </h1>
-                <p className="text-sm font-semibold text-emerald-500 mt-1">
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400 mt-2">
                   Applying for {data.classApplyingFor || "N/A"}
                 </p>
               </div>
@@ -289,166 +319,176 @@ export default function AdmissionDetailPage() {
         </motion.div>
 
         {/* ----- Action bar ----- */}
-        <div className="flex flex-wrap gap-2 p-4 rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+          className="flex flex-wrap gap-3 p-2 rounded-2xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-sm"
+        >
           <Button
-            className="flex-1 min-w-[120px] text-purple-600 border-purple-200 hover:bg-purple-500/5"
+            className="flex-1 min-w-[120px] h-12 rounded-xl text-purple-600 bg-purple-500/[0.04] border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 font-bold ring-1 ring-inset ring-white/[0.04]"
             variant="outline"
             onClick={handleDownloadPDF}
             loading={busy === "pdf"}
             disabled={busy !== null && busy !== "pdf"}
           >
-            {busy !== "pdf" && <Download className="h-4 w-4 mr-1.5" />}
+            {busy !== "pdf" && <Download className="h-4 w-4 mr-2" strokeWidth={2.5} />}
             PDF
           </Button>
           <Button
-            className="flex-1 min-w-[120px] text-emerald-600 border-emerald-200 hover:bg-emerald-500/5"
+            className="flex-1 min-w-[120px] h-12 rounded-xl text-emerald-600 bg-emerald-500/[0.04] border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 font-bold ring-1 ring-inset ring-white/[0.04]"
             variant="outline"
             onClick={() => updateStatus("approved")}
             disabled={busy !== null || data.status === "approved"}
             loading={busy === "approved"}
           >
-            <Check className="h-4 w-4 mr-1.5" /> Approve
+            <Check className="h-4 w-4 mr-2" strokeWidth={2.5} /> Approve
           </Button>
           <Button
-            className="flex-1 min-w-[120px] text-red-600 border-red-200 hover:bg-red-500/5"
+            className="flex-1 min-w-[120px] h-12 rounded-xl text-red-600 bg-red-500/[0.04] border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 hover:-translate-y-0.5 transition-all duration-300 font-bold ring-1 ring-inset ring-white/[0.04]"
             variant="outline"
             onClick={() => updateStatus("rejected")}
             disabled={busy !== null || data.status === "rejected"}
             loading={busy === "rejected"}
           >
-            <Ban className="h-4 w-4 mr-1.5" /> Reject
+            <Ban className="h-4 w-4 mr-2" strokeWidth={2.5} /> Reject
           </Button>
           <Button
-            className="flex-1 min-w-[120px] text-rose-600 border-rose-200 hover:bg-rose-500/5"
+            className="flex-1 min-w-[120px] h-12 rounded-xl text-rose-600 bg-rose-500/[0.04] border-rose-500/20 hover:bg-rose-500/10 hover:border-rose-500/40 hover:-translate-y-0.5 transition-all duration-300 font-bold ring-1 ring-inset ring-white/[0.04]"
             variant="outline"
             onClick={handleDelete}
             disabled={busy !== null}
             loading={busy === "delete"}
           >
-            {busy !== "delete" && <Trash2 className="h-4 w-4 mr-1.5" />}
+            {busy !== "delete" && <Trash2 className="h-4 w-4 mr-2" strokeWidth={2.5} />}
             Delete
           </Button>
-        </div>
-
-        {/* ----- Sections ----- */}
-
-        <SectionCard icon={User} title="Student Information" color="text-blue-500" bg="bg-blue-500/10">
-          <Field label="Full Name" value={data.studentName} full />
-          <Field label="Date of Birth" value={formatDate(data.birthDate)} />
-          <Field label="Blood Group" value={data.bloodGroup || "—"} />
-        </SectionCard>
-
-        <SectionCard icon={Users} title="Parent / Guardian" color="text-purple-500" bg="bg-purple-500/10">
-          <Field label="Father's Name" value={data.fatherName} />
-          <Field label="Mother's Name" value={data.motherName} />
-        </SectionCard>
-
-        <SectionCard icon={School} title="Academic Information" color="text-amber-500" bg="bg-amber-500/10">
-          <Field label="Applying For" value={data.classApplyingFor} />
-          <Field label="Previous Class Passed" value={data.previousClass || "—"} />
-        </SectionCard>
-
-        <SectionCard icon={MapPin} title="Contact & Address" color="text-emerald-500" bg="bg-emerald-500/10">
-          <Field label="Phone" value={data.phone} />
-          <Field label="Email" value={data.email || "—"} />
-          <Field label="Current Address" value={data.currentAddress || "—"} full />
-          <Field label="Permanent Address" value={data.permanentAddress || "—"} full />
-        </SectionCard>
-
-        {/* ----- Documents ----- */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card)]"
-        >
-          <div className="flex items-center gap-3 mb-5 pb-3 border-b border-[var(--border)]">
-            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-bold">Uploaded Documents</h2>
-              <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-                Click any document to view in full screen
-              </p>
-            </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 whitespace-nowrap">
-              {uploadedDocs.length}/{documentCards.length}
-            </span>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {documentCards.map((docItem) => {
-              const Icon = docItem.icon;
-              const uploadedIndex = docItem.url
-                ? uploadedDocs.findIndex((d) => d.key === docItem.key)
-                : -1;
-
-              return (
-                <div
-                  key={docItem.key}
-                  className={`rounded-2xl border-2 overflow-hidden transition-all ${
-                    docItem.url
-                      ? "border-[var(--border)] hover:border-emerald-500/40"
-                      : "border-dashed border-[var(--border)]"
-                  }`}
-                >
-                  {docItem.url ? (
-                    <>
-                      <div
-                        className="relative aspect-[4/3] bg-[var(--bg-soft)] cursor-pointer group"
-                        onClick={() => setLightboxIndex(uploadedIndex >= 0 ? uploadedIndex : 0)}
-                      >
-                        <img
-                          src={docItem.url}
-                          alt={docItem.label}
-                          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors grid place-items-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 rounded-full bg-white/90 shadow-lg">
-                            <Maximize2 className="h-5 w-5 text-gray-900" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-3 bg-[var(--bg)] flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className={`p-1.5 rounded-md ${docItem.bg} ${docItem.color} shrink-0`}>
-                            <Icon className="h-3.5 w-3.5" />
-                          </div>
-                          <p className="text-xs font-bold truncate">{docItem.label}</p>
-                        </div>
-                        <button
-                          onClick={() => setLightboxIndex(uploadedIndex >= 0 ? uploadedIndex : 0)}
-                          className="shrink-0 p-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors"
-                          title="View full screen"
-                        >
-                          <Maximize2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="aspect-[4/3] bg-[var(--bg-soft)] grid place-items-center p-4">
-                      <div className="text-center">
-                        <div className={`mx-auto w-12 h-12 rounded-xl ${docItem.bg} ${docItem.color} grid place-items-center mb-3`}>
-                          <Icon className="h-6 w-6 opacity-50" />
-                        </div>
-                        <p className="text-xs font-bold text-[var(--fg-muted)]">{docItem.label}</p>
-                        <p className="text-[10px] text-[var(--fg-muted)] mt-1">Not uploaded</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
         </motion.div>
 
-        {/* ----- Metadata ----- */}
-        <SectionCard icon={ShieldCheck} title="Application Metadata" color="text-slate-500" bg="bg-slate-500/10">
-          <Field label="Application ID" value={data._id} mono />
-          <Field label="Current Status" value={data.status.toUpperCase()} />
-          <Field label="Submitted" value={formatDate(data.createdAt, true)} />
-          <Field label="Last Updated" value={formatDate(data.updatedAt, true)} />
-        </SectionCard>
+        {/* ----- Sections ----- */}
+        <div className="space-y-6">
+          <SectionCard icon={User} title="Student Information" color="text-blue-500" bg="bg-blue-500/10" ring="ring-blue-500/20">
+            <Field label="Full Name" value={data.studentName} full />
+            <Field label="Date of Birth" value={formatDate(data.birthDate)} />
+            <Field label="Blood Group" value={data.bloodGroup || "—"} />
+          </SectionCard>
+
+          <SectionCard icon={Users} title="Parent / Guardian" color="text-purple-500" bg="bg-purple-500/10" ring="ring-purple-500/20">
+            <Field label="Father's Name" value={data.fatherName} />
+            <Field label="Mother's Name" value={data.motherName} />
+          </SectionCard>
+
+          <SectionCard icon={School} title="Academic Information" color="text-amber-500" bg="bg-amber-500/10" ring="ring-amber-500/20">
+            <Field label="Applying For" value={data.classApplyingFor} />
+            <Field label="Previous Class Passed" value={data.previousClass || "—"} />
+          </SectionCard>
+
+          <SectionCard icon={MapPin} title="Contact & Address" color="text-emerald-500" bg="bg-emerald-500/10" ring="ring-emerald-500/20">
+            <Field label="Phone" value={data.phone} />
+            <Field label="Email" value={data.email || "—"} />
+            <Field label="Current Address" value={data.currentAddress || "—"} full />
+            <Field label="Permanent Address" value={data.permanentAddress || "—"} full />
+          </SectionCard>
+
+          {/* ----- Documents ----- */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: EASE }}
+            className="relative p-6 sm:p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-xl shadow-black/[0.02] overflow-hidden"
+          >
+            {/* Top hairline */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-500/40 to-transparent pointer-events-none" />
+
+            <div className="relative flex items-center gap-3 mb-6 pb-4 border-b border-[var(--border)]">
+              <div className="p-2.5 rounded-xl bg-rose-500/10 ring-1 ring-rose-500/20 text-rose-500">
+                <ShieldCheck className="h-4 w-4" strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold tracking-tight">Uploaded Documents</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] mt-1">
+                  Click any document to view in full screen
+                </p>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.14em] px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 ring-1 ring-inset ring-emerald-500/20 whitespace-nowrap">
+                {uploadedDocs.length}/{documentCards.length}
+              </span>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              {documentCards.map((docItem) => {
+                const Icon = docItem.icon;
+                const uploadedIndex = docItem.url
+                  ? uploadedDocs.findIndex((d) => d.key === docItem.key)
+                  : -1;
+
+                return (
+                  <div
+                    key={docItem.key}
+                    className={`group rounded-[1.5rem] border overflow-hidden transition-all duration-500 ${
+                      docItem.url
+                        ? "border-[var(--border)] bg-[var(--card)]/50 hover:border-[var(--primary)]/40 hover:shadow-lg hover:shadow-black/[0.04]"
+                        : "border-dashed border-[var(--border)] bg-[var(--card)]/30"
+                    }`}
+                  >
+                    {docItem.url ? (
+                      <>
+                        <div
+                          className="relative aspect-[4/3] bg-[var(--bg-soft)] cursor-pointer overflow-hidden"
+                          onClick={() => setLightboxIndex(uploadedIndex >= 0 ? uploadedIndex : 0)}
+                        >
+                          <img
+                            src={docItem.url}
+                            alt={docItem.label}
+                            className="w-full h-full object-contain transition-transform duration-[900ms] group-hover:scale-[1.03]"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-500 grid place-items-center backdrop-blur-[2px]">
+                            <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 p-3 rounded-full bg-white/20 border border-white/30 shadow-2xl">
+                              <Maximize2 className="h-5 w-5 text-white" strokeWidth={2.5} />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3.5 bg-[var(--bg)]/50 border-t border-[var(--border)] flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`p-1.5 rounded-lg ${docItem.bg} ${docItem.ring} ${docItem.color} shrink-0 ring-1 ring-inset`}>
+                              <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </div>
+                            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--fg)] truncate">{docItem.label}</p>
+                          </div>
+                          <button
+                            onClick={() => setLightboxIndex(uploadedIndex >= 0 ? uploadedIndex : 0)}
+                            className="shrink-0 p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all duration-300 ring-1 ring-inset ring-[var(--primary)]/20 hover:ring-[var(--primary)]"
+                            title="View full screen"
+                          >
+                            <Maximize2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="aspect-[4/3] bg-[var(--bg-soft)]/30 grid place-items-center p-4">
+                        <div className="text-center">
+                          <div className={`mx-auto w-12 h-12 rounded-xl ${docItem.bg} ${docItem.ring} ${docItem.color} grid place-items-center mb-3 ring-1 ring-inset`}>
+                            <Icon className="h-6 w-6 opacity-60" strokeWidth={2} />
+                          </div>
+                          <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)]">{docItem.label}</p>
+                          <p className="text-[10px] font-medium text-[var(--fg-muted)] mt-1.5">Not uploaded</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* ----- Metadata ----- */}
+          <SectionCard icon={ShieldCheck} title="Application Metadata" color="text-slate-500" bg="bg-slate-500/10" ring="ring-slate-500/20">
+            <Field label="Application ID" value={data._id} mono />
+            <Field label="Current Status" value={data.status.toUpperCase()} />
+            <Field label="Submitted" value={formatDate(data.createdAt, true)} />
+            <Field label="Last Updated" value={formatDate(data.updatedAt, true)} />
+          </SectionCard>
+        </div>
       </div>
 
       {/* ============================================================
@@ -460,15 +500,16 @@ export default function AdmissionDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center"
+            transition={{ duration: 0.3, ease: EASE }}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-2xl flex items-center justify-center"
             onClick={() => setLightboxIndex(null)}
           >
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxIndex(null); }}
-              className="absolute top-4 right-4 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="absolute top-6 right-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 border border-white/20 ring-1 ring-inset ring-white/10 hover:scale-110"
               aria-label="Close"
             >
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6" strokeWidth={2.5} />
             </button>
 
             {uploadedDocs.length > 1 && (
@@ -480,10 +521,10 @@ export default function AdmissionDetailPage() {
                       i === null ? null : (i - 1 + uploadedDocs.length) % uploadedDocs.length
                     );
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 border border-white/20 ring-1 ring-inset ring-white/10 hover:scale-110"
                   aria-label="Previous"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-6 w-6" strokeWidth={2.5} />
                 </button>
                 <button
                   onClick={(e) => {
@@ -492,41 +533,40 @@ export default function AdmissionDetailPage() {
                       i === null ? null : (i + 1) % uploadedDocs.length
                     );
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 border border-white/20 ring-1 ring-inset ring-white/10 hover:scale-110"
                   aria-label="Next"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-6 w-6" strokeWidth={2.5} />
                 </button>
               </>
             )}
 
             <motion.img
               key={uploadedDocs[lightboxIndex].url}
-              initial={{ scale: 0.92, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
               src={uploadedDocs[lightboxIndex].url}
               alt={uploadedDocs[lightboxIndex].label}
-              className="w-[95vw] h-[85vh] object-contain select-none"
+              className="max-w-[90vw] max-h-[85vh] object-contain select-none rounded-2xl shadow-2xl shadow-black/50"
               onClick={(e) => e.stopPropagation()}
               draggable={false}
             />
 
             <div
-              className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent text-white text-center"
-              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 via-black/60 to-transparent text-white text-center flex flex-col items-center gap-2 pointer-events-none"
             >
-              <p className="font-bold text-base">{uploadedDocs[lightboxIndex].label}</p>
-              <p className="text-xs text-white/60 mt-1">
+              <p className="font-black uppercase tracking-[0.2em] text-lg text-white drop-shadow-lg">{uploadedDocs[lightboxIndex].label}</p>
+              <p className="text-[11px] font-bold text-white/50 tracking-wide">
                 {lightboxIndex + 1} / {uploadedDocs.length} · Press{" "}
-                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px] font-mono">ESC</kbd>{" "}
+                <kbd className="px-1.5 py-0.5 rounded-md border border-white/20 bg-white/10 text-white font-mono text-[10px]">ESC</kbd>{" "}
                 to close
                 {uploadedDocs.length > 1 && (
                   <>
                     {" · "}
-                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px] font-mono">←</kbd>{" "}
-                    <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px] font-mono">→</kbd>{" "}
+                    <kbd className="px-1.5 py-0.5 rounded-md border border-white/20 bg-white/10 text-white font-mono text-[10px]">←</kbd>{" "}
+                    <kbd className="px-1.5 py-0.5 rounded-md border border-white/20 bg-white/10 text-white font-mono text-[10px]">→</kbd>{" "}
                     to navigate
                   </>
                 )}
@@ -548,27 +588,33 @@ function SectionCard({
   title,
   color,
   bg,
+  ring,
   children,
 }: {
   icon: any;
   title: string;
   color: string;
   bg: string;
+  ring: string;
   children: React.ReactNode;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card)]"
+      transition={{ duration: 0.6, ease: EASE }}
+      className="relative p-6 sm:p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-xl shadow-black/[0.02] overflow-hidden"
     >
-      <div className="flex items-center gap-3 mb-5 pb-3 border-b border-[var(--border)]">
-        <div className={`p-2 rounded-lg ${bg} ${color}`}>
-          <Icon className="h-4 w-4" />
+      {/* Top hairline */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+
+      <div className="relative flex items-center gap-3 mb-6 pb-4 border-b border-[var(--border)]">
+        <div className={`p-2.5 rounded-xl ${bg} ${ring} ${color} ring-1 ring-inset shadow-sm`}>
+          <Icon className="h-4 w-4" strokeWidth={2.5} />
         </div>
-        <h2 className="text-base font-bold">{title}</h2>
+        <h2 className="text-lg font-bold tracking-tight">{title}</h2>
       </div>
-      <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">{children}</div>
+      <div className="relative grid sm:grid-cols-2 gap-x-8 gap-y-6">{children}</div>
     </motion.div>
   );
 }
@@ -586,12 +632,12 @@ function Field({
 }) {
   return (
     <div className={full ? "sm:col-span-2" : ""}>
-      <p className="text-[11px] uppercase font-bold tracking-wider text-[var(--fg-muted)] mb-1.5">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--fg-muted)] mb-2">
         {label}
       </p>
       <p
-        className={`text-sm font-medium break-words ${
-          mono ? "font-mono text-xs bg-[var(--bg-soft)] px-2 py-1 rounded inline-block" : ""
+        className={`text-sm font-semibold text-[var(--fg)] break-words ${
+          mono ? "font-mono text-xs bg-[var(--bg-soft)]/70 ring-1 ring-inset ring-[var(--border)] px-2.5 py-1.5 rounded-lg inline-block" : ""
         }`}
       >
         {value || "—"}
@@ -603,21 +649,21 @@ function Field({
 function StatusBadgeLarge({ status }: { status: AdmissionStatus }) {
   if (status === "approved") {
     return (
-      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 text-sm font-bold uppercase shrink-0">
-        <CheckCircle className="h-4 w-4" /> Approved
+      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-black uppercase tracking-[0.16em] ring-1 ring-inset ring-emerald-500/20 shadow-sm shadow-emerald-500/10 shrink-0">
+        <CheckCircle className="h-4 w-4" strokeWidth={2.5} /> Approved
       </span>
     );
   }
   if (status === "rejected") {
     return (
-      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-600 text-sm font-bold uppercase shrink-0">
-        <XCircle className="h-4 w-4" /> Rejected
+      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-black uppercase tracking-[0.16em] ring-1 ring-inset ring-red-500/20 shadow-sm shadow-red-500/10 shrink-0">
+        <XCircle className="h-4 w-4" strokeWidth={2.5} /> Rejected
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 text-amber-600 text-sm font-bold uppercase shrink-0">
-      <Clock className="h-4 w-4" /> Pending
+    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-black uppercase tracking-[0.16em] ring-1 ring-inset ring-amber-500/20 shadow-sm shadow-amber-500/10 shrink-0">
+      <Clock className="h-4 w-4" strokeWidth={2.5} /> Pending
     </span>
   );
 }

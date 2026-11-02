@@ -17,6 +17,8 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase();
 }
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,12 +46,12 @@ export default function TeachersPage() {
     return teachers.filter((t) => {
       // 1. Filter by Role Tab
       const matchesRole = filter === "all" || t.role === filter;
-      
+
       // 2. Filter by Search Query
       const q = search.toLowerCase();
-      const matchesSearch = 
-        t.name?.toLowerCase().includes(q) || 
-        t.subject?.toLowerCase().includes(q) || 
+      const matchesSearch =
+        t.name?.toLowerCase().includes(q) ||
+        t.subject?.toLowerCase().includes(q) ||
         t.designation?.toLowerCase().includes(q);
 
       return matchesRole && matchesSearch;
@@ -58,23 +60,30 @@ export default function TeachersPage() {
 
   return (
     <>
-      <PageHeader 
-        title="Our Expert Faculty" 
-        subtitle="Dedicated educators shaping the future of our students." 
-        breadcrumbs={[{ label: "Faculty" }]} 
+      <PageHeader
+        title="Our Expert Faculty"
+        subtitle="Dedicated educators shaping the future of our students."
+        breadcrumbs={[{ label: "Faculty" }]}
       />
-      
-      <section className="relative max-w-7xl mx-auto px-4 lg:px-8 py-16 lg:py-24">
-        
-        {/* Ambient Background Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[var(--primary)]/5 rounded-full blur-[120px] pointer-events-none -z-10" />
+
+      <section className="relative max-w-7xl mx-auto px-4 lg:px-8 py-16 lg:py-24 overflow-hidden">
+
+        {/* ===== Layered ambient background ===== */}
+        <div className="absolute inset-0 -z-20 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-brand-500/[0.07] rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 -left-24 w-[480px] h-[480px] bg-blue-500/[0.04] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 -right-24 w-[520px] h-[520px] bg-amber-500/[0.04] rounded-full blur-3xl" />
+        </div>
 
         {/* ================= STICKY FILTER BAR ================= */}
         <div className="sticky top-24 z-30 mb-12">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-4 p-2 bg-[var(--bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-[2rem] shadow-lg shadow-black/5">
-            
+          <div className="relative flex flex-col lg:flex-row justify-between items-center gap-3 p-2 bg-[var(--bg)]/70 backdrop-blur-xl border border-[var(--border)] rounded-[2rem] shadow-2xl shadow-black/[0.06] overflow-hidden">
+
+            {/* Top hairline */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent pointer-events-none" />
+
             {/* Role Tabs */}
-            <div className="flex w-full lg:w-auto overflow-x-auto no-scrollbar p-1 gap-1">
+            <div className="relative flex w-full lg:w-auto overflow-x-auto no-scrollbar p-1 gap-1">
               {[
                 { id: "all", label: "All Staff" },
                 { id: "principal", label: "Principal" },
@@ -83,17 +92,17 @@ export default function TeachersPage() {
               ].map((tab) => {
                 const isActive = filter === tab.id;
                 return (
-                  <button 
-                    key={tab.id} 
+                  <button
+                    key={tab.id}
                     onClick={() => setFilter(tab.id)}
-                    className={`relative flex-1 lg:flex-none whitespace-nowrap px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    className={`relative flex-1 lg:flex-none whitespace-nowrap px-6 py-3 rounded-xl text-[11px] uppercase tracking-[0.14em] font-black transition-colors duration-300 ${
                       isActive ? "text-[var(--primary)]" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
                     }`}
                   >
                     {isActive && (
-                      <motion.div 
-                        layoutId="activeTab" 
-                        className="absolute inset-0 bg-[var(--primary)]/10 rounded-xl" 
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-[var(--primary)]/10 rounded-xl ring-1 ring-inset ring-[var(--primary)]/20 shadow-sm shadow-brand-500/10"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
@@ -104,16 +113,23 @@ export default function TeachersPage() {
             </div>
 
             {/* Search Bar */}
-            <div className="relative w-full lg:w-80 shrink-0 px-2 pb-2 lg:pb-0 lg:pr-2">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
-              <Input 
-                placeholder="Search by name or subject..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-12 h-12 bg-[var(--card)] border-transparent focus:bg-[var(--bg)] focus:border-[var(--primary)] rounded-xl transition-all" 
-              />
-            </div>
+            <div className="relative w-full lg:w-80 shrink-0 px-2 pb-2 lg:pb-0 lg:pr-2 group">
+              {/* Focus aura */}
+              <div className="absolute inset-0 lg:inset-2 lg:top-0 lg:bottom-0 rounded-xl bg-gradient-to-r from-brand-500/15 via-transparent to-blue-500/15 opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-500 pointer-events-none" />
 
+              <div className="relative">
+                <Search
+                  className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)] group-focus-within:text-[var(--primary)] transition-colors duration-300 z-10"
+                  strokeWidth={2.5}
+                />
+                <Input
+                  placeholder="Search by name or subject..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="relative pl-11 h-12 bg-[var(--card)]/80 backdrop-blur-md border-[var(--border)] hover:border-[var(--primary)]/30 focus:bg-[var(--bg)] focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-brand-500/10 rounded-xl transition-all duration-300 font-medium"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -122,108 +138,155 @@ export default function TeachersPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="space-y-4">
-                <Skeleton className="aspect-[4/5] rounded-[2rem]" />
-                <Skeleton className="h-6 w-2/3 mx-auto" />
-                <Skeleton className="h-4 w-1/2 mx-auto" />
+                <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md p-1.5 overflow-hidden">
+                  <Skeleton className="aspect-[4/5] rounded-[1.6rem]" />
+                </div>
+                <div className="px-2 space-y-2 text-center">
+                  <Skeleton className="h-5 w-2/3 mx-auto rounded-lg" />
+                  <Skeleton className="h-3.5 w-1/2 mx-auto rounded-lg" />
+                  <Skeleton className="h-7 w-24 mx-auto rounded-full mt-3" />
+                </div>
               </div>
             ))}
           </div>
         ) : filteredTeachers.length === 0 ? (
-          <div className="py-24 text-center border-2 border-dashed border-[var(--border)] rounded-[3rem] bg-[var(--card)]/50 flex flex-col items-center">
-            <div className="w-20 h-20 bg-[var(--bg-soft)] rounded-full grid place-items-center mb-6">
-              <Inbox className="h-10 w-10 text-[var(--fg-muted)] opacity-50" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            className="relative py-24 text-center border border-dashed border-[var(--border)] rounded-[3rem] bg-[var(--card)]/40 backdrop-blur-md flex flex-col items-center overflow-hidden"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-brand-500/[0.06] rounded-full blur-3xl pointer-events-none" />
+
+            {/* Layered medallion icon */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 -m-3 bg-brand-500/10 rounded-full blur-2xl" />
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-brand-500/15 to-transparent ring-1 ring-brand-500/20 grid place-items-center">
+                <div className="w-16 h-16 rounded-full bg-[var(--bg-soft)] ring-1 ring-[var(--border)] grid place-items-center">
+                  <Inbox className="h-8 w-8 text-[var(--fg-muted)] opacity-60" strokeWidth={2.5} />
+                </div>
+              </div>
             </div>
-            <h3 className="text-2xl font-bold mb-2">No faculty found</h3>
-            <p className="text-[var(--fg-muted)] max-w-sm mx-auto">
+
+            <h3 className="text-2xl font-bold mb-2 tracking-tight">No faculty found</h3>
+            <p className="text-sm text-[var(--fg-muted)] max-w-sm mx-auto font-medium leading-relaxed">
               We couldn't find any teachers matching your current filters or search query.
             </p>
-            <button 
+
+            <button
               onClick={() => { setSearch(""); setFilter("all"); }}
-              className="mt-6 text-[var(--primary)] font-bold hover:underline"
+              className="mt-6 text-[var(--primary)] text-xs font-black uppercase tracking-[0.16em] hover:underline underline-offset-4 decoration-2 transition-colors"
             >
               Clear all filters
             </button>
-          </div>
+          </motion.div>
         ) : (
           <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
             <AnimatePresence>
               {filteredTeachers.map((t, i) => (
-                <motion.div 
-                  key={t._id} 
+                <motion.div
+                  key={t._id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }} 
-                  animate={{ opacity: 1, scale: 1 }} 
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: i * 0.05 }}
+                  initial={{ opacity: 0, scale: 0.92, y: 16 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ duration: 0.5, delay: i * 0.04, ease: EASE }}
+                  className="relative group"
                 >
-                  <Link href={`/teachers/${t._id}`} className="group block h-full">
-                    <div className="relative rounded-[2rem] overflow-hidden bg-[var(--card)] border border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-2xl hover:shadow-[var(--primary)]/10 transition-all duration-300 h-full flex flex-col">
-                      
+                  {/* Outer hover aura */}
+                  <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-brand-500/[0.12] via-transparent to-amber-500/[0.08] opacity-0 group-hover:opacity-100 blur-lg transition-opacity duration-500 -z-10 pointer-events-none" />
+
+                  <Link href={`/teachers/${t._id}`} className="block h-full">
+                    <div className="relative rounded-[2rem] overflow-hidden bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] hover:border-[var(--primary)]/40 hover:shadow-2xl hover:shadow-black/[0.06] transition-all duration-500 h-full flex flex-col">
+
+                      {/* Top hairline */}
+                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent z-20 pointer-events-none" />
+
                       {/* Image Section */}
                       <div className="relative aspect-[4/5] bg-[var(--bg-soft)] overflow-hidden">
+
                         {t.image ? (
-                          <Image 
-                            src={t.image} 
-                            alt={t.name} 
-                            fill 
-                            className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
-                            unoptimized 
+                          <Image
+                            src={t.image}
+                            alt={t.name}
+                            fill
+                            className="object-cover group-hover:scale-[1.08] transition-transform duration-[900ms] ease-out"
+                            unoptimized
                           />
                         ) : (
-                          <div className="absolute inset-0 gradient-brand grid place-items-center text-white text-6xl font-black">
-                            {getInitials(t.name)}
+                          <div className="absolute inset-0 gradient-brand grid place-items-center text-white">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
+                            <span className="relative text-6xl font-black tracking-tight drop-shadow-lg">
+                              {getInitials(t.name)}
+                            </span>
                           </div>
                         )}
-                        
-                        {/* Dark Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        
+
+                        {/* Always-on gradient (bottom heavy) */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-500" />
+
+                        {/* Ghost index watermark (top-right) */}
+                        <div className="absolute top-4 right-4 z-10">
+                          <div className="px-2.5 py-1 rounded-lg bg-black/40 backdrop-blur-md border border-white/15 text-white text-[10px] font-black uppercase tracking-[0.16em] ring-1 ring-inset ring-white/10">
+                            {String(i + 1).padStart(2, "0")}
+                          </div>
+                        </div>
+
                         {/* Hover Contact Actions */}
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                        <div className="absolute bottom-5 left-0 right-0 flex justify-center gap-2.5 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-10">
                           {t.email && (
-                            <a 
-                              href={`mailto:${t.email}`} 
+                            <a
+                              href={`mailto:${t.email}`}
                               onClick={(e) => e.stopPropagation()} // Prevent triggering the card link
-                              className="p-3 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-[var(--primary)] hover:scale-110 transition-all shadow-lg"
+                              className="relative p-3 rounded-full bg-white/15 backdrop-blur-xl text-white hover:bg-[var(--primary)] hover:scale-110 transition-all duration-300 shadow-lg shadow-black/20 border border-white/25 ring-1 ring-inset ring-white/20 group/icon"
                               title="Send Email"
                             >
-                              <Mail className="h-5 w-5" />
+                              <Mail className="h-4.5 w-4.5" strokeWidth={2.5} />
                             </a>
                           )}
                           {t.phone && (
-                            <a 
-                              href={`tel:${t.phone}`} 
+                            <a
+                              href={`tel:${t.phone}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="p-3 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-[var(--primary)] hover:scale-110 transition-all shadow-lg"
+                              className="relative p-3 rounded-full bg-white/15 backdrop-blur-xl text-white hover:bg-emerald-500 hover:scale-110 transition-all duration-300 shadow-lg shadow-black/20 border border-white/25 ring-1 ring-inset ring-white/20 group/icon"
                               title="Call Phone"
                             >
-                              <Phone className="h-5 w-5" />
+                              <Phone className="h-4.5 w-4.5" strokeWidth={2.5} />
                             </a>
                           )}
-                          <div className="p-3 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-[var(--primary)] hover:scale-110 transition-all shadow-lg cursor-pointer">
-                            <BookOpen className="h-5 w-5" />
+                          <div className="relative p-3 rounded-full bg-white/15 backdrop-blur-xl text-white hover:bg-[var(--primary)] hover:scale-110 transition-all duration-300 shadow-lg shadow-black/20 border border-white/25 ring-1 ring-inset ring-white/20 cursor-pointer">
+                            <BookOpen className="h-4.5 w-4.5" strokeWidth={2.5} />
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Text Content */}
-                      <div className="p-6 text-center flex-1 flex flex-col justify-between relative bg-gradient-to-b from-[var(--card)] to-[var(--bg-soft)]/30">
+                      <div className="relative p-6 text-center flex-1 flex flex-col justify-between bg-gradient-to-b from-[var(--card)]/40 to-[var(--bg-soft)]/10">
+
+                        {/* Inner top sheen */}
+                        <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent pointer-events-none" />
+
                         <div>
-                          <h3 className="font-bold text-xl mb-1 group-hover:text-[var(--primary)] transition-colors line-clamp-1">
+                          <h3 className="font-bold text-lg sm:text-xl mb-1.5 group-hover:text-[var(--primary)] transition-colors duration-300 line-clamp-1 tracking-tight leading-tight">
                             {t.name}
                           </h3>
-                          <p className="text-sm font-bold text-[var(--fg-muted)] line-clamp-1">
+                          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] line-clamp-1">
                             {t.designation || "Faculty Member"}
                           </p>
                         </div>
-                        
-                        <div className="mt-5">
-                          <Badge variant="secondary" className="px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] shadow-sm">
+
+                        <div className="mt-5 flex justify-center">
+                          <Badge
+                            variant="secondary"
+                            className="px-3.5 py-1 bg-[var(--primary)]/10 text-[var(--primary)] shadow-sm shadow-brand-500/10 ring-1 ring-inset ring-[var(--primary)]/20 text-[10px] font-black uppercase tracking-[0.14em] rounded-full hover:bg-[var(--primary)]/15 transition-colors"
+                          >
                             {t.subject || "General"}
                           </Badge>
                         </div>
                       </div>
 
+                      {/* Animated base accent */}
+                      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/0 to-transparent group-hover:via-brand-500/60 transition-all duration-500" />
                     </div>
                   </Link>
                 </motion.div>

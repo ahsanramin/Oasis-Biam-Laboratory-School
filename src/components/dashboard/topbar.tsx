@@ -8,6 +8,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, isAdmin } = useAuth();
   const [greeting, setGreeting] = useState("");
@@ -21,49 +23,64 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   }, []);
 
   return (
-    <header 
+    <header
       className={cn(
-        "h-16 sticky top-16 lg:top-20 z-20",
+        "relative h-16 sticky top-16 lg:top-20 z-20",
         "bg-[var(--card)]/70 backdrop-blur-2xl border-b border-[var(--border)]",
         "flex items-center justify-between px-4 lg:px-8",
-        "shadow-sm"
+        "shadow-sm shadow-black/[0.02]"
       )}
     >
-      {/* ================= GRADIENT ACCENT LINE ================= */}
-      <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[var(--primary)]/30 to-transparent pointer-events-none" />
+      {/* ================= TOP HAIRLINE EDGE-LIGHT ================= */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+
+      {/* ================= GRADIENT ACCENT LINE (bottom) ================= */}
+      <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent pointer-events-none" />
+
+      {/* ================= AMBIENT CORNER GLOW ================= */}
+      <div className="absolute -top-16 -right-16 w-40 h-40 bg-brand-500/[0.06] rounded-full blur-3xl pointer-events-none" />
 
       {/* ================= LEFT: MENU & CONTEXT ================= */}
-      <div className="flex items-center gap-3 lg:gap-4">
+      <div className="relative flex items-center gap-3 lg:gap-4 z-10">
+
         {/* Mobile Menu Button */}
-        <button 
-          onClick={onMenuClick} 
-          className="lg:hidden p-2 rounded-xl bg-[var(--bg-soft)] hover:bg-[var(--border)] text-[var(--fg)] transition-colors"
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-xl bg-[var(--bg-soft)]/80 backdrop-blur-md hover:bg-[var(--border)] text-[var(--fg)] hover:text-[var(--primary)] transition-all duration-300 ring-1 ring-inset ring-[var(--border)] hover:ring-[var(--primary)]/30 hover:scale-105"
           aria-label="Open menu"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5" strokeWidth={2.5} />
         </button>
 
         {/* Desktop Context Header */}
         <div className="hidden lg:flex items-center gap-4">
-          <div className="relative">
-            {/* Glowing Icon Bubble */}
-            <div className="absolute inset-0 bg-[var(--primary)]/20 rounded-xl blur-md" />
-            <div className="relative w-10 h-10 rounded-xl gradient-brand grid place-items-center text-white shadow-lg shadow-[var(--primary)]/25">
-              <LayoutDashboard className="h-5 w-5" />
+
+          {/* Icon Bubble */}
+          <div className="relative shrink-0">
+            {/* Outer glow */}
+            <div className="absolute inset-0 -m-1 bg-[var(--primary)]/25 rounded-xl blur-md opacity-70 pointer-events-none" />
+            <div className="relative w-11 h-11 rounded-xl gradient-brand grid place-items-center text-white shadow-lg shadow-[var(--primary)]/25 ring-1 ring-inset ring-white/25">
+              {/* Inner sheen */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/[0.2] via-transparent to-transparent pointer-events-none" />
+              <LayoutDashboard className="h-5 w-5 relative" strokeWidth={2.5} />
             </div>
           </div>
 
+          {/* Title block */}
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-black text-lg text-[var(--fg)] leading-none">Dashboard</h1>
+              <h1 className="font-black text-lg text-[var(--fg)] leading-none tracking-tight">
+                Dashboard
+              </h1>
               {isAdmin && (
-                <Badge className="gradient-brand text-white border-none text-[9px] font-black uppercase tracking-wider px-2 py-0.5 shadow-sm">
-                  Admin
+                <Badge className="relative gradient-brand text-white border-none text-[9px] font-black uppercase tracking-[0.14em] px-2 py-0.5 shadow-sm shadow-brand-500/20 ring-1 ring-inset ring-white/25 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.2] via-transparent to-transparent pointer-events-none" />
+                  <span className="relative">Admin</span>
                 </Badge>
               )}
             </div>
-            <p className="text-[11px] font-semibold text-[var(--fg-muted)] mt-1 flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-[var(--accent)]" />
+            <p className="text-[11px] font-semibold text-[var(--fg-muted)] mt-1 flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-[var(--accent)]" strokeWidth={2.5} />
               {greeting}, {user?.name?.split(" ")[0] || "User"} — welcome back!
             </p>
           </div>
@@ -71,70 +88,85 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
         {/* Mobile Title */}
         <div className="lg:hidden flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg gradient-brand grid place-items-center text-white shadow-md">
-            <LayoutDashboard className="h-4 w-4" />
+          <div className="relative w-9 h-9 rounded-lg gradient-brand grid place-items-center text-white shadow-md shadow-brand-500/25 ring-1 ring-inset ring-white/20">
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/[0.2] via-transparent to-transparent pointer-events-none" />
+            <LayoutDashboard className="h-4 w-4 relative" strokeWidth={2.5} />
           </div>
-          <p className="font-black text-sm text-[var(--fg)]">Dashboard</p>
+          <p className="font-black text-sm text-[var(--fg)] tracking-tight">Dashboard</p>
         </div>
       </div>
 
       {/* ================= RIGHT: ACTIONS & PROFILE ================= */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        
+      <div className="relative flex items-center gap-2 sm:gap-3 z-10">
+
         {/* Notifications Bell (Placeholder) */}
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="relative p-2.5 rounded-xl bg-[var(--bg-soft)] hover:bg-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--primary)] transition-colors hidden sm:flex"
+          className="relative p-2.5 rounded-xl bg-[var(--bg-soft)]/80 backdrop-blur-md hover:bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--primary)] transition-all duration-300 hidden sm:flex ring-1 ring-inset ring-[var(--border)] hover:ring-[var(--primary)]/30 hover:shadow-md hover:shadow-brand-500/[0.05] group/bell"
           aria-label="Notifications"
         >
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4 group-hover/bell:rotate-12 transition-transform duration-300" strokeWidth={2.5} />
           {/* Notification Dot */}
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-[var(--card)] animate-pulse" />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-[var(--card)] animate-pulse shadow-sm shadow-red-500/50" />
         </motion.button>
 
         {/* Divider */}
-        <div className="hidden sm:block w-px h-8 bg-[var(--border)]" />
+        <div className="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-[var(--border)] to-transparent" />
 
         {/* Theme Toggle */}
         <ThemeToggle />
 
         {/* User Profile Card */}
-        <div 
+        <div
           className={cn(
-            "flex items-center gap-3 pl-2 pr-2 sm:pr-4 py-1.5 rounded-xl",
-            "bg-[var(--bg-soft)] border border-[var(--border)]",
-            "hover:border-[var(--primary)]/40 hover:bg-[var(--card)] hover:shadow-md",
-            "transition-all duration-300 cursor-pointer group"
+            "relative flex items-center gap-3 pl-2 pr-2 sm:pr-4 py-1.5 rounded-xl",
+            "bg-[var(--bg-soft)]/80 backdrop-blur-md border border-[var(--border)]",
+            "ring-1 ring-inset ring-white/[0.04]",
+            "hover:border-[var(--primary)]/40 hover:bg-[var(--card)] hover:shadow-lg hover:shadow-black/[0.04]",
+            "transition-all duration-500 cursor-pointer group overflow-hidden"
           )}
         >
+          {/* Top hairline */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+
+          {/* Hover corner glow */}
+          <div className="absolute -top-6 -right-6 w-20 h-20 bg-brand-500/[0.08] rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
           {/* Avatar with Online Status */}
           <div className="relative shrink-0">
-            <div className="w-9 h-9 rounded-full overflow-hidden gradient-brand grid place-items-center text-white text-sm font-black shadow-sm ring-2 ring-[var(--card)]">
+            <div className="relative w-9 h-9 rounded-full overflow-hidden gradient-brand grid place-items-center text-white text-sm font-black shadow-sm ring-2 ring-[var(--card)]">
+              {/* Inner sheen */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.15] to-transparent pointer-events-none" />
               {user?.image ? (
-                <img src={user.image} alt={user?.name} className="w-full h-full object-cover" />
+                <img src={user.image} alt={user?.name} className="relative w-full h-full object-cover" />
               ) : user?.name ? (
-                user.name.charAt(0).toUpperCase()
+                <span className="relative tracking-tight">{user.name.charAt(0).toUpperCase()}</span>
               ) : (
-                <User className="h-4 w-4" />
+                <User className="relative h-4 w-4" strokeWidth={2.5} />
               )}
             </div>
             {/* Online Dot */}
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[var(--card)]" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[var(--card)] shadow-sm shadow-emerald-500/50">
+              <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
+            </span>
           </div>
 
           {/* User Info */}
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-black text-[var(--fg)] truncate max-w-[120px] leading-tight group-hover:text-[var(--primary)] transition-colors">
+          <div className="relative hidden sm:block text-left">
+            <p className="text-xs font-black text-[var(--fg)] truncate max-w-[120px] leading-tight group-hover:text-[var(--primary)] transition-colors duration-300 tracking-tight">
               {user?.name || "Guest User"}
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)] leading-tight">
+            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] leading-tight mt-0.5">
               {user?.role || "Member"}
             </p>
           </div>
 
           {/* Dropdown Chevron */}
-          <ChevronDown className="hidden sm:block h-4 w-4 text-[var(--fg-muted)] group-hover:text-[var(--primary)] group-hover:rotate-180 transition-all duration-300" />
+          <ChevronDown
+            className="relative hidden sm:block h-4 w-4 text-[var(--fg-muted)] group-hover:text-[var(--primary)] group-hover:rotate-180 transition-all duration-500"
+            strokeWidth={2.5}
+          />
         </div>
 
       </div>

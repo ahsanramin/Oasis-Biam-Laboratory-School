@@ -84,6 +84,7 @@ const DOCUMENT_FIELDS: {
   icon: any;
   color: string;
   bg: string;
+  ring: string;
 }[] = [
   {
     key: "birthCertificate",
@@ -92,6 +93,7 @@ const DOCUMENT_FIELDS: {
     icon: FileText,
     color: "text-blue-500",
     bg: "bg-blue-500/10",
+    ring: "ring-blue-500/20",
   },
   {
     key: "previousSchoolCertificate",
@@ -100,6 +102,7 @@ const DOCUMENT_FIELDS: {
     icon: GraduationCap,
     color: "text-purple-500",
     bg: "bg-purple-500/10",
+    ring: "ring-purple-500/20",
   },
   {
     key: "passportPhotos",
@@ -108,6 +111,7 @@ const DOCUMENT_FIELDS: {
     icon: ImageIcon,
     color: "text-amber-500",
     bg: "bg-amber-500/10",
+    ring: "ring-amber-500/20",
   },
   {
     key: "parentNid",
@@ -116,11 +120,49 @@ const DOCUMENT_FIELDS: {
     icon: CreditCard,
     color: "text-emerald-500",
     bg: "bg-emerald-500/10",
+    ring: "ring-emerald-500/20",
   },
 ];
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+/* ============================================================
+ * Reusable premium section header
+ * ============================================================ */
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  color,
+  bg,
+  ring,
+}: {
+  icon: any;
+  title: string;
+  subtitle?: string;
+  color: string;
+  bg: string;
+  ring: string;
+}) {
+  return (
+    <div className="flex items-center gap-4 mb-7 pb-4 border-b border-[var(--border)] relative">
+      <div className={`relative w-12 h-12 rounded-2xl ${bg} ring-1 ${ring} grid place-items-center shrink-0 ${color}`}>
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
+        <Icon className="h-5 w-5 relative" strokeWidth={2.5} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="text-xl font-bold text-[var(--fg)] tracking-tight leading-tight">{title}</h3>
+        {subtitle && (
+          <p className="text-xs text-[var(--fg-muted)] mt-1 font-medium leading-relaxed">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /* ============================================================
  * Main Component
@@ -210,7 +252,7 @@ export default function AdmissionPage() {
 
       setDocuments((prev) => ({ ...prev, [key]: imageUrl }));
       console.log("✅ Image uploaded successfully:", imageUrl);
-      
+
       toast.success(
         `${DOCUMENT_FIELDS.find((d) => d.key === key)?.label} uploaded successfully`
       );
@@ -277,22 +319,42 @@ export default function AdmissionPage() {
           subtitle="Join a community of learners where excellence is a tradition."
           breadcrumbs={[{ label: "Admission" }]}
         />
-        <section className="max-w-3xl mx-auto px-4 py-32 text-center">
+        <section className="relative max-w-3xl mx-auto px-4 py-32 text-center overflow-hidden">
+          {/* Ambient glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/[0.08] rounded-full blur-3xl -z-10 pointer-events-none" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-brand-500/[0.06] rounded-full blur-3xl -z-10 pointer-events-none" />
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-12 rounded-[2.5rem] bg-[var(--card)] border border-[var(--border)] shadow-2xl relative overflow-hidden"
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }}
+            className="relative p-10 sm:p-14 rounded-[2.5rem] bg-[var(--card)]/70 backdrop-blur-xl border border-[var(--border)] shadow-2xl shadow-black/[0.06] overflow-hidden"
           >
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-teal-500" />
-            <div className="w-24 h-24 bg-emerald-500/10 rounded-full grid place-items-center mx-auto mb-8">
-              <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+            {/* Top gradient hairline */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
+            {/* Corner glows */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Icon medallion */}
+            <div className="relative inline-flex mb-8">
+              <div className="absolute inset-0 -m-3 bg-emerald-500/20 rounded-full blur-2xl" />
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/10 ring-1 ring-emerald-500/30 grid place-items-center shadow-lg shadow-emerald-500/10">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/10 grid place-items-center">
+                  <CheckCircle2 className="h-9 w-9 text-emerald-500" strokeWidth={2.5} />
+                </div>
+              </div>
             </div>
-            <h2 className="text-3xl font-black mb-4">Application Received!</h2>
-            <p className="text-[var(--fg-muted)] text-lg mb-8 leading-relaxed">
+
+            <h2 className="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
+              Application <span className="gradient-text">Received!</span>
+            </h2>
+            <p className="text-[var(--fg-muted)] text-lg mb-10 leading-relaxed max-w-xl mx-auto font-medium">
               Thank you for choosing Oasis BIAM Laboratory School. Our admissions
               team will review your application and documents, and contact you
               within 2-3 business days.
             </p>
+
             <Button
               onClick={() => {
                 setSubmitted(false);
@@ -300,9 +362,10 @@ export default function AdmissionPage() {
                 setDocuments(INITIAL_DOCUMENTS);
               }}
               size="lg"
-              className="rounded-xl px-8"
+              className="gradient-brand shadow-glow rounded-xl px-8 group"
             >
               Submit Another Application
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </motion.div>
         </section>
@@ -321,20 +384,35 @@ export default function AdmissionPage() {
         breadcrumbs={[{ label: "Admission" }]}
       />
 
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-12 gap-12 items-start relative">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <section className="relative max-w-7xl mx-auto px-4 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        {/* ===== Ambient background layers ===== */}
+        <div className="absolute inset-0 -z-20 pointer-events-none">
+          <div className="absolute top-0 -right-24 w-[560px] h-[560px] bg-brand-500/[0.07] rounded-full blur-3xl" />
+          <div className="absolute top-1/3 -left-24 w-[480px] h-[480px] bg-blue-500/[0.05] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-[520px] h-[520px] bg-amber-500/[0.04] rounded-full blur-3xl" />
+        </div>
 
         {/* LEFT SIDEBAR */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-28">
           {/* Process Card */}
-          <div className="p-8 rounded-[2rem] bg-[var(--card)] border border-[var(--border)] shadow-sm">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-brand-500/10 text-brand-500">
-                <FileText className="h-5 w-5" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            className="relative p-8 rounded-[2rem] bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] shadow-xl shadow-black/[0.03] overflow-hidden group"
+          >
+            {/* Corner sheen */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-bl from-brand-500/[0.08] to-transparent rounded-full blur-2xl pointer-events-none" />
+
+            <h3 className="relative text-lg font-bold mb-7 flex items-center gap-3 tracking-tight">
+              <div className="relative p-2.5 rounded-xl bg-brand-500/10 ring-1 ring-brand-500/20 text-brand-500">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/[0.1] to-transparent pointer-events-none" />
+                <FileText className="h-4.5 w-4.5 relative" strokeWidth={2.5} />
               </div>
               Admission Process
             </h3>
-            <div className="space-y-6">
+
+            <div className="relative space-y-6">
               {[
                 { step: "1", title: "Submit Application", desc: "Fill out the online form accurately." },
                 { step: "2", title: "Upload Documents", desc: "Attach the 4 required documents." },
@@ -342,92 +420,122 @@ export default function AdmissionPage() {
                 { step: "4", title: "Interview", desc: "A short meeting with the principal and parents." },
                 { step: "5", title: "Enrollment", desc: "Complete the formalities upon selection." },
               ].map((s, i, arr) => (
-                <div key={i} className="relative pl-12">
+                <div key={i} className="relative pl-12 group/step">
                   {i !== arr.length - 1 && (
-                    <div className="absolute left-4 top-10 bottom-[-16px] w-0.5 bg-[var(--border)]" />
+                    <div className="absolute left-4 top-10 bottom-[-24px] w-px bg-gradient-to-b from-brand-500/40 via-[var(--border)] to-[var(--border)]" />
                   )}
-                  <div className="absolute left-0 top-0 w-8 h-8 rounded-full gradient-brand text-white text-xs font-bold grid place-items-center shadow-glow">
+                  <div className="absolute left-0 top-0 w-8 h-8 rounded-full gradient-brand text-white text-xs font-black grid place-items-center shadow-lg shadow-brand-500/25 ring-1 ring-white/20 group-hover/step:scale-110 transition-transform duration-300">
                     {s.step}
                   </div>
-                  <h4 className="font-bold text-[var(--fg)]">{s.title}</h4>
-                  <p className="text-sm text-[var(--fg-muted)] mt-1 leading-relaxed">
+                  <h4 className="font-bold text-[var(--fg)] text-sm tracking-tight">{s.title}</h4>
+                  <p className="text-xs text-[var(--fg-muted)] mt-1 leading-relaxed font-medium">
                     {s.desc}
                   </p>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Checklist */}
-          <div className="p-8 rounded-[2rem] bg-[var(--bg-soft)] border border-[var(--border)]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+            className="relative p-8 rounded-[2rem] bg-[var(--bg-soft)]/60 backdrop-blur-md border border-[var(--border)] shadow-lg shadow-black/[0.02] overflow-hidden"
+          >
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/[0.06] rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold flex items-center gap-2.5 tracking-tight">
+                <ShieldCheck className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />
                 Required Documents
               </h3>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600">
+              <span className={`text-[11px] font-black px-2.5 py-1 rounded-lg whitespace-nowrap ring-1 ${
+                uploadedCount === DOCUMENT_FIELDS.length
+                  ? "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20"
+                  : "bg-[var(--card)] text-[var(--fg-muted)] ring-[var(--border)]"
+              }`}>
                 {uploadedCount}/{DOCUMENT_FIELDS.length}
               </span>
             </div>
-            <ul className="space-y-3">
+
+            <ul className="relative space-y-3">
               {DOCUMENT_FIELDS.map((doc) => {
                 const isUploaded = !!documents[doc.key];
                 return (
-                  <li key={doc.key} className="flex items-center gap-3 text-sm font-semibold">
-                    <div className={`p-1 rounded-full shrink-0 transition-colors ${isUploaded ? "bg-emerald-500 text-white" : "bg-[var(--border)] text-[var(--fg-muted)]"}`}>
-                      {isUploaded ? <CheckCircle2 className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                  <li key={doc.key} className="flex items-center gap-3 text-sm font-semibold group/item">
+                    <div className={`p-1 rounded-full shrink-0 transition-all duration-300 ${
+                      isUploaded
+                        ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
+                        : "bg-[var(--border)] text-[var(--fg-muted)]"
+                    }`}>
+                      {isUploaded ? <CheckCircle2 className="h-3 w-3" strokeWidth={3} /> : <X className="h-3 w-3" strokeWidth={3} />}
                     </div>
-                    <span className={isUploaded ? "text-[var(--fg)]" : "text-[var(--fg-muted)]"}>
+                    <span className={`transition-colors duration-300 ${isUploaded ? "text-[var(--fg)]" : "text-[var(--fg-muted)]"}`}>
                       {doc.label}
                     </span>
                   </li>
                 );
               })}
             </ul>
-            <p className="text-xs text-[var(--fg-muted)] mt-4 pt-4 border-t border-[var(--border)] leading-relaxed">
+
+            <p className="relative text-[11px] text-[var(--fg-muted)] mt-5 pt-5 border-t border-[var(--border)] leading-relaxed font-medium">
               💡 All four documents must be uploaded before you can submit the application. Accepted formats: JPG, PNG, WebP · Max 5MB each.
             </p>
-          </div>
+          </motion.div>
         </div>
 
         {/* RIGHT FORM */}
         <div className="lg:col-span-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-8 sm:p-10 rounded-[2.5rem] bg-[var(--card)] border border-[var(--border)] shadow-xl relative overflow-hidden"
+            transition={{ duration: 0.7, ease: EASE }}
+            className="relative p-6 sm:p-10 rounded-[2.5rem] bg-[var(--card)]/70 backdrop-blur-xl border border-[var(--border)] shadow-2xl shadow-black/[0.05] overflow-hidden"
           >
+            {/* Top gradient hairline */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
+            {/* Corner glow */}
+            <div className="absolute -top-24 -right-24 w-72 h-72 bg-brand-500/[0.07] rounded-full blur-3xl pointer-events-none" />
+
             <div className="relative z-10">
               <div className="mb-10">
-                <h2 className="text-3xl font-black font-display mb-2">
-                  Online Application
+                <h2 className="text-3xl font-black font-display mb-2 tracking-tight">
+                  Online <span className="gradient-text">Application</span>
                 </h2>
-                <p className="text-[var(--fg-muted)]">
+                <p className="text-sm text-[var(--fg-muted)] leading-relaxed font-medium">
                   Please fill out all required fields and upload the required documents to ensure a smooth admission process.
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-10">
+              <form onSubmit={handleSubmit} className="space-y-12">
                 {/* Section 1: Student Information */}
                 <div>
-                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[var(--border)]">
-                    <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-xl font-bold text-[var(--fg)]">Student Information</h3>
-                  </div>
+                  <SectionHeader
+                    icon={User}
+                    title="Student Information"
+                    color="text-blue-500"
+                    bg="bg-blue-500/10"
+                    ring="ring-blue-500/20"
+                  />
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div className="space-y-2 sm:col-span-2">
-                      <label className="text-sm font-semibold">Student's Full Name <span className="text-red-500">*</span></label>
-                      <Input placeholder="Enter full name" value={form.studentName} onChange={(e) => setForm({ ...form, studentName: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)]">
+                        Student's Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input placeholder="Enter full name" value={form.studentName} onChange={(e) => setForm({ ...form, studentName: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><Calendar className="h-4 w-4 text-[var(--fg-muted)]" />Date of Birth <span className="text-red-500">*</span></label>
-                      <Input type="date" value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <Calendar className="h-3.5 w-3.5" strokeWidth={2.5} />Date of Birth <span className="text-red-500">*</span>
+                      </label>
+                      <Input type="date" value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><Droplet className="h-4 w-4 text-red-500" />Blood Group</label>
-                      <Select value={form.bloodGroup} onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })} className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors">
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <Droplet className="h-3.5 w-3.5 text-red-500" strokeWidth={2.5} />Blood Group
+                      </label>
+                      <Select value={form.bloodGroup} onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })} className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300">
                         <option value="">Select Blood Group</option>
                         {BLOOD_GROUPS.map((b) => <option key={b} value={b}>{b}</option>)}
                       </Select>
@@ -437,86 +545,110 @@ export default function AdmissionPage() {
 
                 {/* Section 2: Parent Information */}
                 <div>
-                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[var(--border)]">
-                    <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
-                      <Users className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-xl font-bold text-[var(--fg)]">Parent Information</h3>
-                  </div>
+                  <SectionHeader
+                    icon={Users}
+                    title="Parent Information"
+                    color="text-purple-500"
+                    bg="bg-purple-500/10"
+                    ring="ring-purple-500/20"
+                  />
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold">Father's Name <span className="text-red-500">*</span></label>
-                      <Input placeholder="Enter father's name" value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)]">
+                        Father's Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input placeholder="Enter father's name" value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold">Mother's Name <span className="text-red-500">*</span></label>
-                      <Input placeholder="Enter mother's name" value={form.motherName} onChange={(e) => setForm({ ...form, motherName: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)]">
+                        Mother's Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input placeholder="Enter mother's name" value={form.motherName} onChange={(e) => setForm({ ...form, motherName: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                   </div>
                 </div>
 
                 {/* Section 3: Academic Information */}
                 <div>
-                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[var(--border)]">
-                    <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
-                      <School className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-xl font-bold text-[var(--fg)]">Academic Information</h3>
-                  </div>
+                  <SectionHeader
+                    icon={School}
+                    title="Academic Information"
+                    color="text-amber-500"
+                    bg="bg-amber-500/10"
+                    ring="ring-amber-500/20"
+                  />
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold">Class Applying For <span className="text-red-500">*</span></label>
-                      <Select value={form.classApplyingFor} onChange={(e) => setForm({ ...form, classApplyingFor: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors">
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)]">
+                        Class Applying For <span className="text-red-500">*</span>
+                      </label>
+                      <Select value={form.classApplyingFor} onChange={(e) => setForm({ ...form, classApplyingFor: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300">
                         <option value="">Select Target Class</option>
                         {CLASSES.map((c) => <option key={c} value={c}>{c}</option>)}
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[var(--fg-muted)]" />Previous Class Passed</label>
-                      <Input placeholder="e.g., Class II" value={form.previousClass} onChange={(e) => setForm({ ...form, previousClass: e.target.value })} className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <GraduationCap className="h-3.5 w-3.5" strokeWidth={2.5} />Previous Class Passed
+                      </label>
+                      <Input placeholder="e.g., Class II" value={form.previousClass} onChange={(e) => setForm({ ...form, previousClass: e.target.value })} className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                   </div>
                 </div>
 
                 {/* Section 4: Contact & Address */}
                 <div>
-                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[var(--border)]">
-                    <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
-                      <MapPin className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-xl font-bold text-[var(--fg)]">Contact & Address</h3>
-                  </div>
+                  <SectionHeader
+                    icon={MapPin}
+                    title="Contact & Address"
+                    color="text-emerald-500"
+                    bg="bg-emerald-500/10"
+                    ring="ring-emerald-500/20"
+                  />
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><Phone className="h-4 w-4 text-[var(--fg-muted)]" />Phone Number <span className="text-red-500">*</span></label>
-                      <Input placeholder="017XX-XXXXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <Phone className="h-3.5 w-3.5" strokeWidth={2.5} />Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <Input placeholder="017XX-XXXXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><Mail className="h-4 w-4 text-[var(--fg-muted)]" />Email Address</label>
-                      <Input type="email" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <Mail className="h-3.5 w-3.5" strokeWidth={2.5} />Email Address
+                      </label>
+                      <Input type="email" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><MapPin className="h-4 w-4 text-[var(--fg-muted)]" />Current Address <span className="text-red-500">*</span></label>
-                      <Input placeholder="Where do you currently live?" value={form.currentAddress} onChange={(e) => setForm({ ...form, currentAddress: e.target.value })} required className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <MapPin className="h-3.5 w-3.5" strokeWidth={2.5} />Current Address <span className="text-red-500">*</span>
+                      </label>
+                      <Input placeholder="Where do you currently live?" value={form.currentAddress} onChange={(e) => setForm({ ...form, currentAddress: e.target.value })} required className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2"><Home className="h-4 w-4 text-[var(--fg-muted)]" />Permanent Address</label>
-                      <Input placeholder="Permanent home address" value={form.permanentAddress} onChange={(e) => setForm({ ...form, permanentAddress: e.target.value })} className="bg-[var(--bg-soft)] border-transparent focus:bg-[var(--bg)] transition-colors" />
+                      <label className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--fg-muted)] flex items-center gap-2">
+                        <Home className="h-3.5 w-3.5" strokeWidth={2.5} />Permanent Address
+                      </label>
+                      <Input placeholder="Permanent home address" value={form.permanentAddress} onChange={(e) => setForm({ ...form, permanentAddress: e.target.value })} className="h-12 bg-[var(--bg-soft)] border-transparent hover:border-[var(--border)] focus:bg-[var(--bg)] focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
                     </div>
                   </div>
                 </div>
 
                 {/* Section 5: Required Documents */}
                 <div>
-                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[var(--border)]">
-                    <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500">
-                      <ShieldCheck className="h-5 w-5" />
+                  <div className="flex items-center gap-4 mb-7 pb-4 border-b border-[var(--border)]">
+                    <div className="relative w-12 h-12 rounded-2xl bg-rose-500/10 ring-1 ring-rose-500/20 grid place-items-center shrink-0 text-rose-500">
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
+                      <ShieldCheck className="h-5 w-5 relative" strokeWidth={2.5} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold text-[var(--fg)]">Required Documents</h3>
-                      <p className="text-xs text-[var(--fg-muted)] mt-0.5">All 4 documents are required · JPG, PNG, WebP · Max 5MB</p>
+                      <h3 className="text-xl font-bold text-[var(--fg)] tracking-tight leading-tight">Required Documents</h3>
+                      <p className="text-xs text-[var(--fg-muted)] mt-1 font-medium">All 4 documents are required · JPG, PNG, WebP · Max 5MB</p>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-md whitespace-nowrap ${uploadedCount === DOCUMENT_FIELDS.length ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"}`}>
+                    <span className={`text-[11px] font-black px-3 py-1.5 rounded-lg whitespace-nowrap ring-1 ${
+                      uploadedCount === DOCUMENT_FIELDS.length
+                        ? "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-600 ring-amber-500/20"
+                    }`}>
                       {uploadedCount}/{DOCUMENT_FIELDS.length}
                     </span>
                   </div>
@@ -529,20 +661,30 @@ export default function AdmissionPage() {
                 </div>
 
                 {/* Submit */}
-                <div className="pt-6">
-                  <Button type="submit" size="lg" className="w-full h-16 text-lg font-bold shadow-glow group rounded-2xl" loading={loading} disabled={loading || Object.values(uploading).some(Boolean)}>
-                    Submit Application
-                    {!loading && <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />}
+                <div className="pt-4">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="relative w-full h-16 text-base font-bold shadow-glow group rounded-2xl overflow-hidden"
+                    loading={loading}
+                    disabled={loading || Object.values(uploading).some(Boolean)}
+                  >
+                    <span className="relative z-10 inline-flex items-center">
+                      Submit Application
+                      {!loading && <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />}
+                    </span>
+                    {/* Sheen sweep */}
+                    <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                   </Button>
 
                   {uploadedCount < DOCUMENT_FIELDS.length && (
-                    <p className="text-center text-xs font-medium text-amber-600 mt-3">
+                    <p className="text-center text-xs font-semibold text-amber-600 mt-4 px-4 py-2 rounded-xl bg-amber-500/[0.06] border border-amber-500/20 inline-flex items-center gap-2 w-full justify-center">
                       ⚠ Please upload all {DOCUMENT_FIELDS.length} documents before submitting
                     </p>
                   )}
 
-                  <p className="text-center text-xs font-medium text-[var(--fg-muted)] mt-4">
-                    By submitting, you agree to our Terms of Service and Privacy Policy.
+                  <p className="text-center text-[11px] font-medium text-[var(--fg-muted)] mt-5 tracking-wide">
+                    By submitting, you agree to our <span className="text-[var(--fg)] font-bold">Terms of Service</span> and <span className="text-[var(--fg)] font-bold">Privacy Policy</span>.
                   </p>
                 </div>
               </form>
@@ -565,7 +707,7 @@ function DocumentUploader({
   onUpload,
   onRemove,
 }: {
-  field: { key: DocumentKey; label: string; description: string; icon: any; color: string; bg: string };
+  field: { key: DocumentKey; label: string; description: string; icon: any; color: string; bg: string; ring: string };
   url: string;
   uploading: boolean;
   onUpload: (key: DocumentKey, file: File) => void;
@@ -575,7 +717,16 @@ function DocumentUploader({
   const Icon = field.icon;
 
   return (
-    <div className={`relative p-4 rounded-2xl border-2 transition-all ${url ? "border-emerald-500/30 bg-emerald-500/5" : "border-dashed border-[var(--border)] bg-[var(--bg-soft)] hover:border-[var(--fg-muted)]"}`}>
+    <div className={`relative p-4 rounded-2xl border transition-all duration-500 group ${
+      url
+        ? "border-emerald-500/30 bg-emerald-500/[0.04] shadow-lg shadow-emerald-500/[0.06]"
+        : "border-dashed border-[var(--border)] bg-[var(--bg-soft)]/60 hover:border-brand-500/40 hover:bg-[var(--bg-soft)] hover:shadow-lg hover:shadow-brand-500/[0.04]"
+    }`}>
+      {/* Hover aura */}
+      {!url && (
+        <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-brand-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500 -z-10 pointer-events-none" />
+      )}
+
       <input
         ref={inputRef}
         type="file"
@@ -591,32 +742,59 @@ function DocumentUploader({
 
       {url ? (
         <div className="space-y-3">
-          <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[var(--bg)] border border-[var(--border)]">
-            <img src={url} alt={field.label} className="w-full h-full object-contain" />
-            <button type="button" onClick={() => onRemove(field.key)} className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg" disabled={uploading} aria-label="Remove document">
-              <X className="h-4 w-4" />
+          <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[var(--bg)] border border-[var(--border)] group/img">
+            <img src={url} alt={field.label} className="w-full h-full object-contain transition-transform duration-700 group-hover/img:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
+            <button
+              type="button"
+              onClick={() => onRemove(field.key)}
+              className="absolute top-2 right-2 p-2 rounded-lg bg-red-500/90 backdrop-blur-sm text-white hover:bg-red-600 transition-all duration-300 shadow-lg shadow-red-500/30 ring-1 ring-white/20 hover:scale-110"
+              disabled={uploading}
+              aria-label="Remove document"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2.5} />
             </button>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-bold truncate flex-1">{field.label}</p>
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-600 text-xs font-bold whitespace-nowrap">
-              <CheckCircle2 className="h-3 w-3" /> Uploaded
+            <p className="text-sm font-bold truncate flex-1 tracking-tight">{field.label}</p>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-wider ring-1 ring-emerald-500/20 whitespace-nowrap">
+              <CheckCircle2 className="h-3 w-3" strokeWidth={3} /> Uploaded
             </span>
           </div>
         </div>
       ) : (
         <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-xl border border-[var(--border)] shrink-0 ${uploading ? "bg-emerald-500/10" : field.bg}`}>
-            {uploading ? <Loader2 className={`h-5 w-5 animate-spin ${field.color}`} /> : <Icon className={`h-5 w-5 ${field.color}`} />}
+          <div className={`relative p-3 rounded-xl border border-[var(--border)] shrink-0 transition-all duration-300 ${
+            uploading ? "bg-emerald-500/10 ring-1 ring-emerald-500/20" : `${field.bg} ring-1 ${field.ring}`
+          }`}>
+            {uploading ? (
+              <Loader2 className={`h-5 w-5 animate-spin ${field.color}`} strokeWidth={2.5} />
+            ) : (
+              <Icon className={`h-5 w-5 ${field.color}`} strokeWidth={2.5} />
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold truncate">{field.label}</p>
-            <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mt-0.5">
+            <p className="text-sm font-bold truncate tracking-tight">{field.label}</p>
+            <p className="text-[11px] text-[var(--fg-muted)] line-clamp-2 mt-0.5 font-medium leading-relaxed">
               {uploading ? "Uploading..." : field.description}
             </p>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={uploading} className="shrink-0">
-            {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Upload className="h-3.5 w-3.5 mr-1.5" />Upload</>}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="shrink-0 h-9 px-3 rounded-lg font-bold text-xs hover:border-brand-500/40 hover:text-brand-500 transition-all duration-300"
+          >
+            {uploading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <>
+                <Upload className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} />
+                Upload
+              </>
+            )}
           </Button>
         </div>
       )}

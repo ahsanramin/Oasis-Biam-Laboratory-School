@@ -6,9 +6,10 @@ import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  ChevronDown, Search, HelpCircle, MessageSquare, 
-  GraduationCap, BookOpen, Building2, ShieldCheck, Sparkles
+import {
+  ChevronDown, Search, HelpCircle, MessageSquare,
+  GraduationCap, BookOpen, Building2, ShieldCheck, Sparkles,
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +42,8 @@ const CATEGORY_ICONS: Record<string, any> = {
 
 const CATEGORIES = ["All", "Admission", "Academics", "Facilities", "General"];
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +57,7 @@ export default function FAQPage() {
         // 🔧 FIX: API unwrapping
         const r = await api.get<any>("/api/content?type=faq&limit=100");
         const dbFaqs = extractArray(r);
-        
+
         if (dbFaqs.length > 0) {
           const mapped = dbFaqs.map((f: any) => ({
             _id: f._id,
@@ -94,29 +97,73 @@ export default function FAQPage() {
       />
 
       {/* ================= HERO / SEARCH SECTION ================= */}
-      <section className="relative pt-16 pb-12 overflow-hidden border-b border-[var(--border)] bg-[var(--bg-soft)]">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-[var(--primary)]/10 blur-[100px] rounded-full pointer-events-none" />
-        
+      <section className="relative pt-20 pb-14 overflow-hidden border-b border-[var(--border)]">
+
+        {/* Layered ambient glows */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-brand-500/[0.08] blur-[120px] rounded-full" />
+          <div className="absolute top-10 left-1/4 w-[400px] h-[300px] bg-amber-500/[0.05] blur-[100px] rounded-full" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-blue-500/[0.05] blur-[100px] rounded-full" />
+        </div>
+
+        {/* Subtle dot-grid */}
+        <div
+          className="absolute inset-0 opacity-[0.035] -z-10 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+
         <div className="relative max-w-3xl mx-auto px-4 text-center z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h2 className="text-3xl font-black mb-6">How can we help you?</h2>
-            <div className="relative w-full shadow-2xl shadow-[var(--primary)]/10 rounded-full">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-[var(--fg-muted)]" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search for answers (e.g., 'transport', 'fees')..."
-                className="pl-16 pr-8 h-20 text-lg rounded-full bg-[var(--card)] border-2 border-transparent focus:border-[var(--primary)] transition-all"
-              />
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }}
+          >
+
+            {/* Eyebrow badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] ring-1 ring-inset ring-white/[0.04] text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mb-6">
+              <Sparkles className="h-3 w-3" strokeWidth={2.5} /> Help Center
             </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black mb-8 tracking-tight leading-[1.1]">
+              How can we <span className="gradient-text">help you?</span>
+            </h2>
+
+            {/* Search input with focus aura */}
+            <div className="relative group">
+              {/* Focus aura glow */}
+              <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-r from-brand-500/20 via-amber-500/15 to-blue-500/20 opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500 pointer-events-none" />
+
+              <div className="relative rounded-full shadow-2xl shadow-brand-500/[0.06]">
+                <Search
+                  className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--fg-muted)] group-focus-within:text-[var(--primary)] transition-colors duration-300 z-10"
+                  strokeWidth={2.5}
+                />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search for answers (e.g., 'transport', 'fees')..."
+                  className="pl-16 pr-8 h-[68px] text-base rounded-full bg-[var(--card)]/80 backdrop-blur-xl border border-[var(--border)] ring-1 ring-inset ring-white/[0.04] focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-brand-500/15 transition-all duration-300 font-medium"
+                />
+              </div>
+            </div>
+
           </motion.div>
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-4 lg:px-8 py-16">
-        
+      <section className="relative max-w-4xl mx-auto px-4 lg:px-8 py-16 overflow-hidden">
+
+        {/* Ambient background for content */}
+        <div className="absolute inset-0 -z-20 pointer-events-none">
+          <div className="absolute top-1/3 -left-24 w-[480px] h-[480px] bg-brand-500/[0.05] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 -right-24 w-[480px] h-[480px] bg-blue-500/[0.04] rounded-full blur-3xl" />
+        </div>
+
         {/* ================= CATEGORY PILLS ================= */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-12">
           {CATEGORIES.map((cat) => {
             const Icon = CATEGORY_ICONS[cat] || HelpCircle;
             const isActive = category === cat;
@@ -125,14 +172,17 @@ export default function FAQPage() {
                 key={cat}
                 onClick={() => setCategory(cat)}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300",
+                  "relative flex items-center gap-2 px-5 py-2.5 rounded-full text-[12px] font-bold uppercase tracking-[0.14em] transition-all duration-300",
                   isActive
-                    ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/30 scale-105"
-                    : "bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--primary)]/50 hover:bg-[var(--bg-soft)]"
+                    ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/30 ring-1 ring-inset ring-white/20"
+                    : "bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--primary)]/40 hover:bg-[var(--card)] hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/[0.03]"
                 )}
               >
-                <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-[var(--fg-muted)]")} />
-                {cat}
+                {isActive && (
+                  <span className="pointer-events-none absolute inset-0 -m-0.5 rounded-full bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60" />
+                )}
+                <Icon className={cn("h-3.5 w-3.5 relative transition-colors", isActive ? "text-white" : "text-[var(--fg-muted)]")} strokeWidth={2.5} />
+                <span className="relative">{cat}</span>
               </button>
             );
           })}
@@ -142,26 +192,53 @@ export default function FAQPage() {
         {loading ? (
           <div className="space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+              <div key={i} className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md p-6 sm:p-7 space-y-3">
+                <div className="flex items-center gap-5">
+                  <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-2.5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-3/4 rounded-lg" />
+                  </div>
+                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                </div>
+              </div>
             ))}
           </div>
         ) : filteredFaqs.length === 0 ? (
-          <div className="text-center py-20 bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-sm">
-            <div className="w-20 h-20 bg-[var(--bg-soft)] rounded-full grid place-items-center mx-auto mb-6">
-              <HelpCircle className="h-10 w-10 text-[var(--fg-muted)] opacity-50" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            className="relative text-center py-24 rounded-[2.5rem] border border-dashed border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-md overflow-hidden"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-500/[0.06] rounded-full blur-3xl pointer-events-none" />
+
+            {/* Layered medallion icon */}
+            <div className="relative inline-flex mb-6">
+              <div className="absolute inset-0 -m-3 bg-brand-500/10 rounded-full blur-2xl" />
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-brand-500/15 to-transparent ring-1 ring-brand-500/20 grid place-items-center">
+                <div className="w-16 h-16 rounded-full bg-[var(--bg-soft)] ring-1 ring-[var(--border)] grid place-items-center">
+                  <HelpCircle className="h-8 w-8 text-[var(--fg-muted)] opacity-60" strokeWidth={2.5} />
+                </div>
+              </div>
             </div>
-            <h3 className="text-xl font-bold mb-2">No results found</h3>
-            <p className="text-[var(--fg-muted)] mb-8 max-w-sm mx-auto">
+
+            <h3 className="text-xl font-bold mb-2 tracking-tight">No results found</h3>
+            <p className="text-sm text-[var(--fg-muted)] mb-8 max-w-sm mx-auto font-medium leading-relaxed">
               We couldn't find an answer matching "{search}". Try a different keyword or browse categories.
             </p>
-            <Button variant="outline" onClick={() => { setSearch(""); setCategory("All"); }}>
+            <Button
+              variant="outline"
+              onClick={() => { setSearch(""); setCategory("All"); }}
+              className="rounded-xl font-bold hover:border-[var(--primary)]/40 hover:bg-brand-500/[0.06] hover:text-[var(--primary)] transition-all duration-300"
+            >
               Clear All Filters
             </Button>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             <AnimatePresence>
-              {filteredFaqs.map((faq) => {
+              {filteredFaqs.map((faq, index) => {
                 const isOpen = openId === faq._id;
                 return (
                   <motion.div
@@ -170,63 +247,106 @@ export default function FAQPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.25, ease: EASE }}
                     className={cn(
-                      "rounded-2xl border overflow-hidden transition-colors duration-300",
-                      isOpen 
-                        ? "bg-[var(--card)] border-[var(--primary)] shadow-xl shadow-[var(--primary)]/5" 
-                        : "bg-[var(--card)] border-[var(--border)] hover:border-[var(--primary)]/50"
+                      "relative rounded-2xl border overflow-hidden transition-all duration-500 group",
+                      isOpen
+                        ? "bg-[var(--card)] border-[var(--primary)]/50 shadow-xl shadow-brand-500/[0.06]"
+                        : "bg-[var(--card)]/70 backdrop-blur-md border-[var(--border)] hover:border-[var(--primary)]/40 hover:shadow-lg hover:shadow-black/[0.03]"
                     )}
                   >
+                    {/* Top hairline edge-light */}
+                    <div className={cn(
+                      "absolute top-0 left-0 right-0 h-px transition-opacity duration-500 pointer-events-none",
+                      isOpen
+                        ? "bg-gradient-to-r from-transparent via-brand-500/60 to-transparent opacity-100"
+                        : "bg-gradient-to-r from-transparent via-white/[0.08] to-transparent opacity-100"
+                    )} />
+
+                    {/* Hover aura */}
+                    {!isOpen && (
+                      <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-brand-500/[0.08] via-transparent to-transparent opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500 -z-10 pointer-events-none" />
+                    )}
+
+                    {/* Ghost number watermark */}
+                    <div className={cn(
+                      "absolute top-2 right-4 text-[80px] font-black leading-none select-none pointer-events-none tracking-tighter transition-opacity duration-500",
+                      isOpen
+                        ? "text-brand-500/[0.06]"
+                        : "text-[var(--fg)]/[0.025] group-hover:text-[var(--fg)]/[0.04]"
+                    )}>
+                      {String(index + 1).padStart(2, "0")}
+                    </div>
+
                     <button
                       onClick={() => setOpenId(isOpen ? null : faq._id)}
-                      className="w-full flex items-center justify-between p-6 sm:p-7 text-left gap-4"
+                      className="relative w-full flex items-center justify-between p-6 sm:p-7 text-left gap-4 z-10"
                     >
-                      <div className="flex items-center gap-5">
+                      <div className="flex items-center gap-5 min-w-0 flex-1">
+
+                        {/* Icon medallion */}
                         <div className={cn(
-                          "shrink-0 w-10 h-10 rounded-xl grid place-items-center transition-all duration-300",
-                          isOpen 
-                            ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/30 scale-110" 
-                            : "bg-[var(--bg-soft)] text-[var(--fg-muted)]"
+                          "relative shrink-0 w-11 h-11 rounded-xl grid place-items-center transition-all duration-500",
+                          isOpen
+                            ? "gradient-brand text-white shadow-lg shadow-brand-500/30 scale-110 ring-1 ring-white/20"
+                            : "bg-[var(--bg-soft)] text-[var(--fg-muted)] ring-1 ring-inset ring-[var(--border)] group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)] group-hover:ring-[var(--primary)]/20"
                         )}>
-                          <HelpCircle className="h-5 w-5" />
+                          {isOpen && (
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                          )}
+                          <HelpCircle className="h-5 w-5 relative" strokeWidth={2.5} />
                         </div>
-                        <div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)] mb-1 block">
+
+                        <div className="min-w-0">
+                          <span className={cn(
+                            "text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 block transition-colors",
+                            isOpen ? "text-[var(--primary)]" : "text-[var(--fg-muted)]"
+                          )}>
                             {faq.category}
                           </span>
-                          <span className="font-bold text-lg sm:text-xl text-[var(--fg)] leading-snug">
+                          <span className={cn(
+                            "font-bold text-base sm:text-lg text-[var(--fg)] leading-snug tracking-tight block transition-colors",
+                            isOpen ? "text-[var(--fg)]" : "group-hover:text-[var(--primary)]"
+                          )}>
                             {faq.question}
                           </span>
                         </div>
                       </div>
+
+                      {/* Chevron circle */}
                       <div className={cn(
-                        "shrink-0 w-8 h-8 rounded-full grid place-items-center transition-all duration-300",
-                        isOpen ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--bg-soft)] text-[var(--fg-muted)]"
+                        "shrink-0 w-9 h-9 rounded-full grid place-items-center transition-all duration-500 ring-1 ring-inset",
+                        isOpen
+                          ? "bg-[var(--primary)]/10 text-[var(--primary)] ring-[var(--primary)]/20 rotate-180"
+                          : "bg-[var(--bg-soft)] text-[var(--fg-muted)] ring-[var(--border)] group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)] group-hover:ring-[var(--primary)]/20"
                       )}>
-                        <ChevronDown
-                          className={cn(
-                            "h-5 w-5 transition-transform duration-300",
-                            isOpen && "rotate-180"
-                          )}
-                        />
+                        <ChevronDown className="h-4 w-4" strokeWidth={2.5} />
                       </div>
                     </button>
-                    
-                    <AnimatePresence>
+
+                    <AnimatePresence initial={false}>
                       {isOpen && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          transition={{ duration: 0.35, ease: EASE }}
+                          className="relative overflow-hidden"
                         >
-                          <div className="px-6 pb-7 sm:px-7 sm:pl-[5.25rem] text-[var(--fg-muted)] leading-relaxed text-base">
+                          {/* Answer top divider */}
+                          <div className="mx-6 sm:mx-7 h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent" />
+
+                          <div className="relative px-6 pb-7 pt-5 sm:px-7 sm:pl-[5.25rem] text-[var(--fg-muted)] leading-relaxed text-[15px] font-medium">
                             {faq.answer}
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
+
+                    {/* Animated base accent when open */}
+                    {isOpen && (
+                      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/50 to-transparent" />
+                    )}
                   </motion.div>
                 );
               })}
@@ -235,34 +355,63 @@ export default function FAQPage() {
         )}
 
         {/* ================= STILL HAVE QUESTIONS CTA ================= */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-24 p-8 lg:p-14 rounded-[2.5rem] bg-gradient-to-br from-[var(--card)] to-[var(--bg-soft)] border border-[var(--border)] text-center relative overflow-hidden shadow-sm"
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="relative mt-24 p-8 lg:p-14 rounded-[2.5rem] bg-[var(--card)]/60 backdrop-blur-xl border border-[var(--border)] text-center overflow-hidden shadow-2xl shadow-black/[0.04]"
         >
-          {/* Decorative background */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-[var(--primary)] opacity-10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-amber-500 opacity-10 rounded-full blur-3xl pointer-events-none" />
-          
+          {/* Top hairline */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/50 to-transparent pointer-events-none" />
+
+          {/* Dual decorative glows */}
+          <div className="absolute -top-24 -right-20 w-72 h-72 bg-brand-500/[0.12] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-20 w-72 h-72 bg-amber-500/[0.08] rounded-full blur-3xl pointer-events-none" />
+
+          {/* Ghost watermark */}
+          <div className="absolute top-4 right-8 text-[120px] font-black leading-none text-[var(--fg)]/[0.025] select-none pointer-events-none tracking-tighter">
+            ★
+          </div>
+
           <div className="relative z-10">
-            <div className="inline-flex p-4 rounded-2xl bg-[var(--bg)] border border-[var(--border)] mb-6 shadow-xl">
-              <MessageSquare className="h-8 w-8 text-[var(--primary)]" />
+
+            {/* Icon medallion */}
+            <div className="relative inline-flex mb-7">
+              <div className="absolute inset-0 -m-2 bg-brand-500/15 rounded-full blur-xl pointer-events-none" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500/15 to-transparent ring-1 ring-brand-500/25 grid place-items-center shadow-lg shadow-brand-500/10">
+                <div className="w-11 h-11 rounded-xl bg-[var(--bg)] ring-1 ring-[var(--border)] grid place-items-center">
+                  <MessageSquare className="h-5 w-5 text-[var(--primary)]" strokeWidth={2.5} />
+                </div>
+              </div>
             </div>
-            <h2 className="text-3xl lg:text-4xl font-black font-display mb-4">
-              Still have questions?
+
+            <h2 className="text-3xl lg:text-4xl font-black font-display mb-4 tracking-tight">
+              Still have <span className="gradient-text">questions?</span>
             </h2>
-            <p className="text-[var(--fg-muted)] mb-10 max-w-lg mx-auto text-lg">
+            <p className="text-[var(--fg-muted)] mb-10 max-w-lg mx-auto text-base leading-relaxed font-medium">
               Can't find the answer you're looking for? Our friendly admissions and support team is ready to help.
             </p>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact">
-                <Button size="lg" className="w-full sm:w-auto shadow-glow rounded-xl px-8">
-                  Contact Support
+              <Link href="/contact" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="relative w-full sm:w-auto gradient-brand shadow-glow rounded-xl px-8 h-12 font-bold group overflow-hidden"
+                >
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  <span className="relative inline-flex items-center">
+                    Contact Support
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.5} />
+                  </span>
                 </Button>
               </Link>
-              <Link href="/admission">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl px-8 bg-[var(--card)]">
+              <Link href="/admission" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto rounded-xl px-8 h-12 font-bold bg-[var(--card)]/80 backdrop-blur-md border-[var(--border)] hover:border-[var(--primary)]/40 hover:bg-brand-500/[0.06] hover:text-[var(--primary)] transition-all duration-300"
+                >
                   Apply Now
                 </Button>
               </Link>
