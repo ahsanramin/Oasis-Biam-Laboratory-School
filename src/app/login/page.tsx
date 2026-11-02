@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,23 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams(); // 🎯 ADDED to read URL errors
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // 🎯 Catch OAuth errors from the URL and show a friendly toast
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "unable_to_link_account") {
+      toast.error("An account with this email already exists. Please sign in with your password instead of Google.");
+    } else if (error === "oauth") {
+      toast.error("Failed to authenticate with Google. Please try again.");
+    }
+  }, [searchParams]);
 
   // =========================================
   // EMAIL / PASSWORD LOGIN
@@ -33,25 +45,24 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await authClient.signIn.email({ email, password });
-
+      
       if (res.error) throw new Error(res.error.message);
-
-      // Safely check role to route correctly
+      
       const userRole = (res.data?.user as { role?: string })?.role;
-
+      
       if (userRole === "admin") {
         toast.success("Welcome back, Admin!");
         router.push("/dashboard/admin");
       } else {
         toast.success("Welcome back!");
-        router.push("/dashboard");
+        router.push("/dashboard/member");
       }
-
+      
       router.refresh();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
+    } catch (err: unknown) { 
+      toast.error(err instanceof Error ? err.message : "Login failed"); 
+    } finally { 
+      setLoading(false); 
     }
   }
 
@@ -61,19 +72,16 @@ export default function LoginPage() {
   async function handleGoogle() {
     setGoogleLoading(true);
     try {
-      // Dynamically gets the exact frontend domain (works for localhost & Vercel)
-      const origin = window.location.origin;
-
-      await authClient.signIn.social({
-        provider: "google",
-        // After successful Google auth, Better Auth will redirect here
+      const origin = window.location.origin; 
+      
+      await authClient.signIn.social({ 
+        provider: "google", 
         callbackURL: `${origin}/dashboard`,
-        // If it fails, redirect back to login
         errorCallbackURL: `${origin}/login?error=oauth`,
       });
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Google login failed");
-      setGoogleLoading(false);
+    } catch (err: unknown) { 
+      toast.error(err instanceof Error ? err.message : "Google login failed"); 
+      setGoogleLoading(false); 
     }
   }
 
