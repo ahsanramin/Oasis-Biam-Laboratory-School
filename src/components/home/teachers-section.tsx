@@ -56,7 +56,7 @@ export function TeachersSection({ teachers }: { teachers: any[] }) {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--fg)]">Meet Our Faculty</span>
             </div>
 
-            {/* 🎯 UPDATED HEADING */}
+            {/* Heading */}
             <h2 className="text-4xl lg:text-6xl font-black font-display tracking-tight leading-[1.05]">
               Our Expert <br className="hidden sm:block" />
               <span className="gradient-text">Teachers.</span>
@@ -121,6 +121,7 @@ export function TeachersSection({ teachers }: { teachers: any[] }) {
           </motion.div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {/* 🎯 teachers.map() ensures ALL teachers render here */}
             {teachers.map((t, i) => (
               <motion.div
                 key={t._id}
