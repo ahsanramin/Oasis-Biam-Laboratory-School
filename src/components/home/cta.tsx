@@ -135,7 +135,7 @@ export function CTA() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.5, duration: 0.6, ease: EASE }}
-                className="flex flex-col sm:flex-row gap-3 w-full justify-center mb-12"
+                className="flex flex-col sm:flex-row gap-3 w-full justify-center mb-4"
               >
                 <Link href="/admission" className="w-full sm:w-auto">
                   <Button
@@ -170,50 +170,6 @@ export function CTA() {
                     <span className="relative">Contact Admissions</span>
                   </Button>
                 </Link>
-              </motion.div>
-
-              {/* Trust Indicator (Social Proof) */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
-                className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 pt-8 border-t border-[var(--border)]/60 w-full max-w-md mx-auto justify-center"
-              >
-                {/* Avatar Stack */}
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="relative w-10 h-10 rounded-full border-2 border-[var(--card)] bg-[var(--bg-soft)] overflow-hidden ring-1 ring-inset ring-white/[0.06] shadow-sm shadow-black/[0.08] hover:scale-110 hover:z-10 transition-all duration-300"
-                    >
-                      <img
-                        src={`https://i.pravatar.cc/100?img=${i + 10}`}
-                        alt="Parent"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                  <div className="relative w-10 h-10 rounded-full border-2 border-[var(--card)] bg-[var(--primary)]/10 text-[var(--primary)] grid place-items-center text-[10px] font-black ring-1 ring-inset ring-[var(--primary)]/20 shadow-sm shadow-brand-500/10">
-                    +1K
-                  </div>
-                </div>
-
-                {/* Text */}
-                <div className="text-center sm:text-left">
-                  <div className="flex items-center justify-center sm:justify-start gap-0.5 text-amber-500 mb-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star
-                        key={i}
-                        className="w-3.5 h-3.5 fill-current drop-shadow-sm"
-                        strokeWidth={2.5}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)]">
-                    Trusted by <span className="text-[var(--fg)]">1,200+</span> Parents
-                  </p>
-                </div>
               </motion.div>
 
             </div>

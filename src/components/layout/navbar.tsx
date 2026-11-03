@@ -20,6 +20,7 @@ const LOGO = "https://i.ibb.co.com/7NzsPGvc/logo.jpg";
 const MAIN_LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/admission", label: "Admission" }, // 🎯 ADDED HERE
   { href: "/teachers", label: "Faculty" },
   { href: "/blog", label: "Blog" },
   { href: "/notices", label: "Notices" },
@@ -30,7 +31,7 @@ const MAIN_LINKS = [
 
 const MORE_LINKS = [
   { href: "/achievements", label: "Achievements" },
-  { href: "/admission", label: "Admission" },
+  // Admission removed from here
   { href: "/faq", label: "FAQ" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },
@@ -100,7 +101,7 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* 🎯 FIXED: Now visible on mobile with responsive text sizes */}
+            {/* Visible on mobile with responsive text sizes */}
             <div className="block whitespace-nowrap">
               <p className="font-extrabold text-base sm:text-lg lg:text-xl leading-tight gradient-text tracking-tight flex items-center gap-1.5">
                 Oasis BIAM
@@ -122,7 +123,7 @@ export function Navbar() {
                   key={l.href}
                   href={l.href}
                   className={cn(
-                    "relative px-3.5 2xl:px-4 py-2 rounded-full text-xs 2xl:text-sm font-bold transition-colors duration-300 whitespace-nowrap z-10 tracking-tight",
+                    "relative px-3 2xl:px-4 py-2 rounded-full text-xs 2xl:text-sm font-bold transition-colors duration-300 whitespace-nowrap z-10 tracking-tight",
                     isActive ? "text-[var(--primary)]" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
                   )}
                 >
@@ -144,7 +145,7 @@ export function Navbar() {
             {/* More Dropdown */}
             <div className="relative shrink-0" onMouseEnter={() => setMoreOpen(true)} onMouseLeave={() => setMoreOpen(false)}>
               <button className={cn(
-                "relative px-3.5 2xl:px-4 py-2 rounded-full text-xs 2xl:text-sm font-bold flex items-center gap-1 transition-colors duration-300 whitespace-nowrap z-10 tracking-tight",
+                "relative px-3 2xl:px-4 py-2 rounded-full text-xs 2xl:text-sm font-bold flex items-center gap-1 transition-colors duration-300 whitespace-nowrap z-10 tracking-tight",
                 moreOpen ? "text-[var(--primary)]" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
               )}>
                 More

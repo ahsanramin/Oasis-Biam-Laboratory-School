@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { Users, GraduationCap, Award, TrendingUp, BookOpen, Sparkles } from "lucide-react";
+import { Users, GraduationCap, Award, TrendingUp, Sparkles } from "lucide-react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -46,15 +46,6 @@ const TINTS = {
     ring: "ring-purple-500/20",
     glow: "from-purple-500/20",
   },
-  rose: {
-    iconBg: "bg-rose-500/10",
-    iconColor: "text-rose-500",
-    hoverIcon: "group-hover:bg-rose-500",
-    gradient: "from-rose-500 to-red-500",
-    orb: "bg-rose-500",
-    ring: "ring-rose-500/20",
-    glow: "from-rose-500/20",
-  },
 };
 
 // =========================================
@@ -86,12 +77,12 @@ function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
 // 3. MAIN COMPONENT
 // =========================================
 export function Stats() {
+  // 🎯 UPDATED: Removed Library Books, changed values to 100+ and 15+
   const items = [
-    { label: "Total Students", value: 1250, suffix: "+", icon: Users, tint: TINTS.blue },
-    { label: "Expert Teachers", value: 45, suffix: "+", icon: GraduationCap, tint: TINTS.amber },
+    { label: "Total Students", value: 100, suffix: "+", icon: Users, tint: TINTS.blue },
+    { label: "Expert Faculty", value: 15, suffix: "+", icon: GraduationCap, tint: TINTS.amber },
     { label: "Years of Excellence", value: 21, suffix: "+", icon: Award, tint: TINTS.emerald },
     { label: "Awards Won", value: 150, suffix: "+", icon: TrendingUp, tint: TINTS.purple },
-    { label: "Library Books", value: 5000, suffix: "+", icon: BookOpen, tint: TINTS.rose },
   ];
 
   return (
@@ -159,7 +150,8 @@ export function Stats() {
         </div>
 
         {/* ================= STATS GRID ================= */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5">
+        {/* 🎯 UPDATED: Changed grid to 4 columns since there are 4 items */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {items.map((s, i) => {
             const Icon = s.icon;
             const theme = s.tint;
@@ -170,9 +162,8 @@ export function Stats() {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ delay: i * 0.06, duration: 0.6, ease: EASE }}
-                // The last item on a 2-col mobile grid should span full width
-                className={`relative group ${i === 4 ? "col-span-2 md:col-span-1" : ""}`}
+                transition={{ delay: i * 0.08, duration: 0.6, ease: EASE }}
+                className="relative group"
               >
                 {/* Outer hover aura */}
                 <div className={`absolute -inset-1 rounded-[2rem] bg-gradient-to-br ${theme.glow} via-transparent to-transparent opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500 -z-10 pointer-events-none`} />

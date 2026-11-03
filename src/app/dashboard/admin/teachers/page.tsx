@@ -27,7 +27,8 @@ type Teacher = {
   image?: string | null; 
   bio?: string; 
   email?: string; 
-  phone?: string 
+  phone?: string;
+  order?: number; 
 };
 
 const ROLE_META: Record<Role, { label: string; singular: string; icon: typeof Crown; badge: "brand" | "success" | "warning" }> = {
@@ -38,7 +39,9 @@ const ROLE_META: Record<Role, { label: string; singular: string; icon: typeof Cr
 
 const ROLE_ORDER: Role[] = ["principal", "vice-principal", "teacher"];
 const ROLES = [{ value: "teacher", label: "Teacher" }, { value: "vice-principal", label: "Vice Principal" }, { value: "principal", label: "Principal" }];
-const emptyForm = { name: "", role: "teacher", designation: "Teacher", subject: "", image: "", bio: "", email: "", phone: "" };
+
+// 🔧 FIX: Added 'order' to emptyForm
+const emptyForm = { name: "", role: "teacher", designation: "Teacher", subject: "", image: "", bio: "", email: "", phone: "", order: 999 };
 
 function getInitials(name: string) { 
   return name ? name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase() : "?"; 
@@ -76,6 +79,12 @@ export default function AdminTeachers() {
   const grouped = useMemo(() => {
     const out: Record<Role, Teacher[]> = { principal: [], "vice-principal": [], teacher: [] };
     for (const t of filtered) { const key = (t.role as Role) in out ? (t.role as Role) : "teacher"; out[key].push(t); }
+    
+    // Sort each group by order
+    Object.keys(out).forEach(key => {
+       out[key as Role].sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+    });
+
     return out;
   }, [filtered]);
 
@@ -110,6 +119,9 @@ export default function AdminTeachers() {
     setSaving(true);
     try {
       const { _id, ...payload } = form;
+      // Ensure order is sent as a Number
+      payload.order = Number(payload.order) || 999;
+      
       if (editing) await api.patch(`/api/teachers/${editing._id}`, payload);
       else await api.post("/api/teachers", payload);
       toast.success(editing ? "Updated" : "Added");
@@ -140,22 +152,14 @@ export default function AdminTeachers() {
   return (
     <div className="relative max-w-7xl mx-auto space-y-8 pb-20 overflow-hidden">
       
-      {/* ===== Ambient Background Glows ===== */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[120px]" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-500/[0.04] rounded-full blur-[120px]" />
       </div>
 
-      {/* ================= HEADER ================= */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE }}
-        className="relative overflow-hidden rounded-[2.5rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/[0.04]"
-      >
+      {/* HEADER */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="relative overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/[0.04]">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent pointer-events-none" />
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/[0.08] rounded-full blur-3xl pointer-events-none" />
-
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 mb-3 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 ring-1 ring-inset ring-white/[0.04] text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">
@@ -166,79 +170,43 @@ export default function AdminTeachers() {
               Manage every member of the Oasis BIAM faculty.
             </p>
           </div>
-          <Button 
-            onClick={openAdd} 
-            size="lg" 
-            className="relative gradient-brand shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 hover:scale-[1.02] transition-all duration-300 rounded-xl font-bold group overflow-hidden ring-1 ring-inset ring-white/20 h-12 px-6 shrink-0"
-          >
+          <Button onClick={openAdd} size="lg" className="relative gradient-brand shadow-lg shadow-brand-500/25 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 rounded-xl font-bold group overflow-hidden ring-1 ring-inset ring-white/20">
             <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             <UserPlus className="h-4 w-4 mr-2 relative" strokeWidth={2.5} /> Add Faculty
           </Button>
         </div>
       </motion.div>
 
-      {/* ================= STATS ================= */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      {/* STATS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatPill icon={Users} label="Total" value={stats.total} tone="brand" />
         <StatPill icon={Crown} label="Principals" value={stats.principal} tone="warning" />
         <StatPill icon={UserCog} label="Vice Principals" value={stats.vp} tone="success" />
         <StatPill icon={GraduationCap} label="Teachers" value={stats.teacher} tone="brand" />
       </div>
 
-      {/* ================= SEARCH ================= */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
-        className="relative max-w-md group"
-      >
+      {/* SEARCH */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease: EASE }} className="relative max-w-md group">
         <div className="absolute inset-0 -m-1 rounded-xl bg-gradient-to-r from-brand-500/15 via-transparent to-blue-500/15 opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-500 pointer-events-none" />
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)] group-focus-within:text-[var(--primary)] transition-colors duration-300 z-10" strokeWidth={2.5} />
-          <input 
-            value={search} 
-            onChange={(e) => setSearch(e.target.value)} 
-            placeholder="Search by name, email, subject, or role..." 
-            className="w-full pl-11 pr-10 h-12 rounded-xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md text-sm font-medium outline-none hover:border-[var(--primary)]/30 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" 
-          />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, email, subject, or role..." className="w-full pl-11 pr-10 h-12 rounded-xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md text-sm font-medium outline-none hover:border-[var(--primary)]/30 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-brand-500/10 transition-all duration-300" />
         </div>
       </motion.div>
 
-      {/* ================= GRID ================= */}
+      {/* GRID */}
       {loading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[420px] rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md animate-pulse" />
-          ))}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-96 rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md animate-pulse" />)}
         </div>
       ) : items.length === 0 ? (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="relative py-24 text-center border border-dashed border-[var(--border)] rounded-[2.5rem] bg-[var(--card)]/40 backdrop-blur-md flex flex-col items-center overflow-hidden"
-        >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-500/[0.06] rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative mb-6">
-            <div className="absolute inset-0 -m-3 bg-brand-500/10 rounded-full blur-2xl" />
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-brand-500/15 to-transparent ring-1 ring-brand-500/20 grid place-items-center">
-              <div className="w-16 h-16 rounded-full bg-[var(--bg-soft)] ring-1 ring-[var(--border)] grid place-items-center">
-                <Users className="h-8 w-8 text-[var(--fg-muted)] opacity-60" strokeWidth={2.5} />
-              </div>
-            </div>
-          </div>
-
-          <h3 className="text-2xl font-bold mb-2 tracking-tight">No faculty members yet</h3>
-          <p className="text-sm text-[var(--fg-muted)] mb-6 max-w-sm mx-auto font-medium leading-relaxed">
-            Add the first member to start building the Oasis BIAM faculty directory.
-          </p>
-          <Button onClick={openAdd} className="h-11 px-6 rounded-xl gradient-brand text-white font-bold shadow-lg shadow-brand-500/25 hover:scale-[1.02] transition-all duration-300 ring-1 ring-inset ring-white/20">
-            <Plus className="h-4 w-4 mr-2" strokeWidth={2.5} /> Add First Member
-          </Button>
-        </motion.div>
+        <div className="py-24 text-center border border-dashed border-[var(--border)] rounded-[2.5rem] bg-[var(--card)]/40 backdrop-blur-md">
+          <Users className="h-16 w-16 text-[var(--fg-muted)] opacity-40 mx-auto mb-4" strokeWidth={1.5} />
+          <h3 className="text-lg font-bold mb-2 tracking-tight">No faculty members yet</h3>
+          <Button onClick={openAdd} className="mt-4 rounded-xl font-bold"><Plus className="h-4 w-4 mr-2" /> Add first member</Button>
+        </div>
       ) : (
-        <div className="space-y-14">
+        <div className="space-y-12">
           {ROLE_ORDER.map((roleKey) => {
             const list = grouped[roleKey];
             if (list.length === 0) return null;
@@ -246,36 +214,16 @@ export default function AdminTeachers() {
             const Icon = meta.icon;
             return (
               <section key={roleKey}>
-                {/* Section Header */}
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="relative p-2.5 rounded-xl gradient-brand text-white shadow-lg shadow-brand-500/20 ring-1 ring-inset ring-white/20">
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/[0.2] via-transparent to-transparent pointer-events-none" />
-                    <Icon className="h-4 w-4 relative" strokeWidth={2.5} />
-                  </div>
+                  <div className="p-2.5 rounded-xl gradient-brand text-white shadow-lg shadow-brand-500/20 ring-1 ring-inset ring-white/20"><Icon className="h-4 w-4" strokeWidth={2.5} /></div>
                   <h2 className="text-xl font-black tracking-tight">{meta.label}</h2>
-                  <Badge variant={meta.badge} className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] shadow-sm ring-1 ring-inset ring-white/20">
-                    {list.length}
-                  </Badge>
+                  <Badge variant={meta.badge} className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.14em]">{list.length}</Badge>
                   <div className="flex-1 h-px bg-gradient-to-r from-[var(--border)] to-transparent" />
                 </div>
-                
-                {/* Grid */}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                   {list.map((t, i) => (
-                    <motion.div 
-                      key={t._id} 
-                      initial={{ opacity: 0, y: 20 }} 
-                      animate={{ opacity: 1, y: 0 }} 
-                      transition={{ delay: (i % 3) * 0.06, duration: 0.5, ease: EASE }}
-                      className="relative group"
-                    >
-                      <TeacherCard 
-                        teacher={t} 
-                        index={i}
-                        deleting={deleting === t._id} 
-                        onEdit={() => openEdit(t)} 
-                        onDelete={() => remove(t)} 
-                      />
+                    <motion.div key={t._id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, ease: EASE }}>
+                      <TeacherCard teacher={t} deleting={deleting === t._id} onEdit={() => openEdit(t)} onDelete={() => remove(t)} />
                     </motion.div>
                   ))}
                 </div>
@@ -285,7 +233,7 @@ export default function AdminTeachers() {
         </div>
       )}
 
-      {/* ================= DIALOG ================= */}
+      {/* DIALOG */}
       <Dialog open={open} onClose={() => { if (saving || uploading) return; setOpen(false); }} title={editing ? "Edit Faculty Member" : "Add Faculty Member"} className="max-w-2xl">
         <div className="space-y-6 max-h-[75vh] overflow-y-auto px-1 pb-4 scrollbar-thin">
           
@@ -315,35 +263,50 @@ export default function AdminTeachers() {
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Full Name <span className="text-red-500">*</span></label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl font-medium" />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl" />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Role</label>
-              <Select value={form.role} onChange={(e) => handleRoleChange(e.target.value)} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl font-medium">
+              <Select value={form.role} onChange={(e) => handleRoleChange(e.target.value)} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl">
                 {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
               </Select>
+            </div>
+          </div>
+
+          {/* 🔧 NEW: Display Order (Serial Number) Input */}
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Display Order (Serial)</label>
+              <Input 
+                type="number" 
+                value={form.order} 
+                onChange={(e) => setForm({ ...form, order: e.target.value })} 
+                placeholder="e.g. 1, 2, 3..."
+                className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl" 
+              />
+              <p className="text-[10px] text-[var(--fg-muted)] ml-1">Smaller numbers appear first.</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Subject</label>
+              <Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl" />
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Designation</label>
-              <Input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl font-medium" />
+              <Input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl" />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Subject</label>
-              <Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl font-medium" />
+              <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Email</label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl" />
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Email</label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl font-medium" />
-            </div>
-            <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--fg-muted)] ml-1">Phone</label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl font-medium" />
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="h-12 bg-[var(--bg-soft)]/70 border-[var(--border)] focus:ring-2 focus:ring-brand-500/10 transition-all rounded-xl" />
             </div>
           </div>
 
@@ -365,116 +328,50 @@ export default function AdminTeachers() {
 }
 
 function StatPill({ icon: Icon, label, value, tone }: { icon: any; label: string; value: number; tone: "brand" | "warning" | "success" }) {
-  const toneCls = { 
-    brand: "text-[var(--primary)] bg-[var(--primary)]/10 ring-[var(--primary)]/20", 
-    warning: "text-amber-500 bg-amber-500/10 ring-amber-500/20", 
-    success: "text-emerald-500 bg-emerald-500/10 ring-emerald-500/20" 
-  }[tone];
-
+  const toneCls = { brand: "text-[var(--primary)] bg-[var(--primary)]/10 ring-[var(--primary)]/20", warning: "text-amber-500 bg-amber-500/10 ring-amber-500/20", success: "text-emerald-500 bg-emerald-500/10 ring-emerald-500/20" }[tone];
   return (
-    <div className="relative flex items-center gap-3 p-4 rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-300 overflow-hidden group">
-      {/* Top hairline */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
-
-      <div className={`relative shrink-0 w-10 h-10 rounded-xl grid place-items-center ring-1 ring-inset ${toneCls} group-hover:scale-110 transition-transform duration-500`}>
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
-        <Icon className="h-4 w-4 relative" strokeWidth={2.5} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xl font-black leading-none tabular-nums tracking-tight">{value}</p>
-        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] mt-1.5 truncate">{label}</p>
-      </div>
+    <div className="flex items-center gap-3 p-4 rounded-2xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-sm">
+      <div className={`p-2 rounded-xl ring-1 ring-inset ${toneCls}`}><Icon className="h-4 w-4" strokeWidth={2.5} /></div>
+      <div className="min-w-0"><p className="text-xl font-black leading-none tabular-nums">{value}</p><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] mt-1.5 truncate">{label}</p></div>
     </div>
   );
 }
 
-function TeacherCard({ teacher: t, index, deleting, onEdit, onDelete }: { teacher: Teacher; index: number; deleting: boolean; onEdit: () => void; onDelete: () => void }) {
+function TeacherCard({ teacher: t, deleting, onEdit, onDelete }: { teacher: Teacher; deleting: boolean; onEdit: () => void; onDelete: () => void }) {
   const meta = ROLE_META[(t.role as Role) in ROLE_META ? (t.role as Role) : "teacher"];
   const Icon = meta.icon;
-  
   return (
-    <div className="relative group flex flex-col h-full">
+    <div className="group overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md hover:border-[var(--primary)]/40 hover:shadow-xl transition-all duration-500 flex flex-col h-full relative">
       
-      {/* Outer hover aura */}
-      <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-brand-500/[0.12] via-transparent to-amber-500/[0.08] opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500 -z-10 pointer-events-none" />
+      {/* Order Badge */}
+      <div className="absolute top-3 right-3 z-20 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/20 text-white text-[10px] font-black">
+        #{t.order || 999}
+      </div>
 
-      <div className="relative overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md ring-1 ring-inset ring-white/[0.04] group-hover:border-[var(--primary)]/40 group-hover:shadow-2xl group-hover:shadow-black/[0.06] group-hover:-translate-y-1.5 transition-all duration-500 h-full flex flex-col">
-        
-        {/* Top hairline edge-light */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent z-20 pointer-events-none" />
-
-        {/* Ghost Index Watermark */}
-        <div className="absolute top-3 right-4 text-[64px] font-black leading-none text-[var(--fg)]/[0.025] select-none pointer-events-none tracking-tighter group-hover:text-[var(--fg)]/[0.045] transition-colors duration-500 z-10">
-          {String(index + 1).padStart(2, "0")}
-        </div>
-
-        {/* Image Section */}
-        <div className="relative aspect-[16/10] bg-gradient-to-br from-[var(--primary)]/10 to-transparent overflow-hidden">
-          {t.image ? (
-            <img src={t.image} alt={t.name} className="w-full h-full object-cover group-hover:scale-[1.08] transition-transform duration-[900ms] ease-out" />
-          ) : (
-            <div className="w-full h-full grid place-items-center gradient-brand text-white text-4xl font-black">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
-              <span className="relative drop-shadow-lg">{getInitials(t.name)}</span>
-            </div>
-          )}
-          
-          {/* Bottom gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-          {/* Role Badge */}
-          <Badge variant={meta.badge} className="absolute bottom-3 left-3 shadow-lg shadow-black/20 ring-1 ring-inset ring-white/20 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] rounded-full backdrop-blur-md">
-            <Icon className="h-3 w-3 mr-1" strokeWidth={2.5} /> {meta.singular}
-          </Badge>
-        </div>
-        
-        {/* Content Section */}
-        <div className="p-5 flex-1 flex flex-col relative bg-gradient-to-b from-[var(--card)]/40 to-[var(--bg-soft)]/10">
-          
-          {/* Inner top sheen */}
-          <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent pointer-events-none" />
-
-          <h3 className="font-bold text-lg truncate tracking-tight group-hover:text-[var(--primary)] transition-colors duration-300">
-            {t.name}
-          </h3>
-          
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] mt-1 truncate">
-            {t.designation || "Faculty Member"}
-          </p>
-          
-          {t.subject && (
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--primary)] mt-2 truncate">
-              {t.subject}
-            </p>
-          )}
-          
-          {/* Actions */}
-          <div className="flex gap-2 mt-5 pt-4 border-t border-[var(--border)] mt-auto">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1 h-9 rounded-lg font-bold text-[11px] uppercase tracking-[0.14em] hover:border-[var(--primary)]/40 hover:text-[var(--primary)] hover:bg-[var(--primary)]/[0.04] transition-all duration-300 ring-1 ring-inset ring-white/[0.04]" 
-              onClick={onEdit}
-            >
-              <Edit className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} /> Edit
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onDelete} 
-              disabled={deleting} 
-              className="h-9 w-9 rounded-lg p-0 text-[var(--fg-muted)] hover:text-red-500 hover:bg-red-500/10 ring-1 ring-inset ring-transparent hover:ring-red-500/20 transition-all duration-300"
-            >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
-            </Button>
+      <div className="relative aspect-[16/10] bg-gradient-to-br from-[var(--primary)]/10 to-transparent">
+        {t.image ? (
+          <img src={t.image} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+        ) : (
+          <div className="w-full h-full grid place-items-center gradient-brand text-white text-4xl font-black">
+            <span className="relative drop-shadow-lg">{getInitials(t.name)}</span>
           </div>
+        )}
+        <Badge variant={meta.badge} className="absolute top-3 left-3 shadow-lg shadow-black/20 ring-1 ring-inset ring-white/20 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em]">
+          <Icon className="h-3 w-3 mr-1" strokeWidth={2.5} /> {meta.singular}
+        </Badge>
+      </div>
+      
+      <div className="p-5 flex-1 flex flex-col">
+        <h3 className="font-bold text-lg truncate tracking-tight">{t.name}</h3>
+        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--fg-muted)] mt-1 truncate">{t.designation || "—"}</p>
+        {t.subject && <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--primary)] mt-2 truncate">{t.subject}</p>}
+        
+        <div className="flex gap-2 mt-5 pt-4 border-t border-[var(--border)] mt-auto">
+          <Button variant="outline" size="sm" className="flex-1 h-9 rounded-lg font-bold text-xs hover:border-[var(--primary)]/40 hover:text-[var(--primary)] transition-all" onClick={onEdit}><Edit className="h-3.5 w-3.5 mr-1.5" /> Edit</Button>
+          <Button variant="ghost" size="sm" onClick={onDelete} disabled={deleting} className="h-9 w-9 rounded-lg p-0 text-[var(--fg-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all">
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
+          </Button>
         </div>
-
-        {/* Animated bottom accent bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1">
-          <div className="h-full w-0 group-hover:w-full bg-gradient-to-r from-[var(--primary)] to-amber-400 transition-all duration-700 rounded-r-full shadow-sm" />
-        </div>
-
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight, PlayCircle, Star, Sparkles, Activity
@@ -12,12 +11,11 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 // ==========================================
-// SLIDE DATA
+// SLIDE DATA (Image properties removed)
 // ==========================================
 const SLIDES = [
   {
     id: 1,
-    image: "https://i.ibb.co.com/j9p9vNfJ/images-1.jpg",
     badge: "Admission Open — Session 2027",
     titleWords: ["The", "Future", "of"],
     highlight: "Education",
@@ -28,7 +26,6 @@ const SLIDES = [
   },
   {
     id: 2,
-    image: "https://i.ibb.co.com/67z0dmbS/images.jpg",
     badge: "World-Class Facilities",
     titleWords: ["Where", "Innovation"],
     highlight: "Meets",
@@ -152,13 +149,13 @@ function AuroraBackground() {
       <motion.div
         animate={{ x: [0, 60, 0, -60, 0], y: [0, -60, -100, -60, 0], scale: [1, 1.15, 1.1, 0.95, 1] }}
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px] opacity-25"
+        className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px] opacity-30"
         style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
       />
       <motion.div
         animate={{ x: [0, -100, 0, 100, 0], y: [0, 40, 100, 40, 0], scale: [1, 0.9, 1.15, 1, 1] }}
         transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-        className="absolute top-1/3 right-0 w-[450px] h-[450px] rounded-full blur-[120px] opacity-20"
+        className="absolute top-1/3 right-0 w-[450px] h-[450px] rounded-full blur-[120px] opacity-25"
         style={{ background: "radial-gradient(circle, #f59e0b, transparent 70%)" }}
       />
     </div>
@@ -204,38 +201,23 @@ export function Hero() {
     <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full min-h-[100svh] flex flex-col justify-between overflow-hidden bg-[#020617]"
+      className="relative h-[100svh] min-h-[640px] max-h-[900px] w-full flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617]"
     >
       
-      {/* ===== LAYER 1: Background Image ===== */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.4, ease: "easeInOut" }}
-          className="absolute inset-0 z-0"
-        >
-          <Image
-            src={slide.image}
-            alt="Oasis BIAM Campus"
-            fill
-            className="object-cover object-center"
-            priority
-            quality={100}
-            unoptimized
-          />
-        </motion.div>
-      </AnimatePresence>
+      {/* ===== LAYER 1: Deep Gradient Background (Replaces Image) ===== */}
+      <div className="absolute inset-0 z-0">
+        {/* Core dark background to ensure text readability */}
+        <div className="absolute inset-0 bg-[#020617]/80" />
+        
+        {/* Radial gradient for depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,#020617_90%)]" />
+        
+        {/* Top and Bottom fades */}
+        <div className="absolute top-0 inset-x-0 h-32 z-0 bg-gradient-to-b from-[#020617] to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 h-40 z-0 bg-gradient-to-t from-[#020617] to-transparent" />
+      </div>
 
-      {/* ===== LAYER 2: Overlays ===== */}
-      <div className="absolute inset-0 z-0 bg-[#020617]/65" />
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_15%,#020617_95%)]" />
-      <div className="absolute top-0 inset-x-0 h-32 z-0 bg-gradient-to-b from-[#020617] to-transparent" />
-      <div className="absolute bottom-0 inset-x-0 h-40 z-0 bg-gradient-to-t from-[#020617] to-transparent" />
-
-      {/* ===== LAYER 3: Aurora + Particles + Grid + Spotlight ===== */}
+      {/* ===== LAYER 2: Aurora + Particles + Grid + Spotlight ===== */}
       <AuroraBackground />
       <FloatingParticles />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px] opacity-20 z-0 pointer-events-none" />
@@ -244,8 +226,8 @@ export function Hero() {
       {/* Top edge-light hairline */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent z-10 pointer-events-none" />
 
-      {/* ===== LAYER 4: MAIN CONTENT ===== */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-20 mt-16">
+      {/* ===== LAYER 3: MAIN CONTENT ===== */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 lg:px-8 pt-20 pb-4">
         
         <AnimatePresence mode="wait">
           <motion.div
@@ -270,8 +252,10 @@ export function Hero() {
               <ArrowRight className="h-3.5 w-3.5 text-white/60 group-hover:translate-x-1 transition-all duration-300 relative" strokeWidth={2.5} />
             </motion.div>
 
-            {/* ===== HEADLINE (Fixed to render properly) ===== */}
-            <h1 className="font-black text-white text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tighter font-display mb-6 drop-shadow-[0_8px_32px_rgba(0,0,0,0.9)] w-full flex flex-col items-center gap-1 md:gap-2">
+            {/* ===== HEADLINE ===== */}
+            <h1 
+              className="font-black text-white text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tighter font-display mb-6 drop-shadow-[0_8px_32px_rgba(0,0,0,0.9)] w-full flex flex-col items-center gap-1 md:gap-2"
+            >
               <motion.span
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -350,8 +334,8 @@ export function Hero() {
 
       </div>
 
-      {/* ===== LAYER 5: INLINE TRUST BAR (Anchored to bottom) ===== */}
-      <div className="relative z-20 mt-auto border-t border-white/10 bg-black/60 backdrop-blur-2xl">
+      {/* ===== LAYER 4: INLINE TRUST BAR ===== */}
+      <div className="relative z-20 border-t border-white/10 bg-black/60 backdrop-blur-2xl">
         
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
 
@@ -414,7 +398,7 @@ export function Hero() {
         </div>
       </div>
 
-      {/* ===== LAYER 6: Slide Navigation ===== */}
+      {/* ===== LAYER 5: Slide Navigation ===== */}
       <div className="absolute bottom-[90px] left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
         {SLIDES.map((s, idx) => (
           <button
@@ -438,7 +422,7 @@ export function Hero() {
         ))}
       </div>
 
-      {/* ===== LAYER 7: Scroll Indicator ===== */}
+      {/* ===== LAYER 6: Scroll Indicator ===== */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
