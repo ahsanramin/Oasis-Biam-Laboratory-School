@@ -1,26 +1,44 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowRight, PlayCircle, Star, Sparkles, Activity
+  ArrowRight, PlayCircle, Star, Sparkles, Activity,
 } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useReducedMotion,
+} from "framer-motion";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+const SLIDE_DURATION_MS = 9000;
+const AVATAR_IDS = [11, 12, 13, 14] as const;
 
-// ==========================================
-// SLIDE DATA (Image properties removed)
-// ==========================================
-const SLIDES = [
+type Slide = {
+  id: number;
+  badge: string;
+  titleWords: string[];
+  highlight: string;
+  titleWords2: string[];
+  subtitle: string;
+  ctaText: string;
+  ctaLink: string;
+};
+
+const SLIDES: Slide[] = [
   {
     id: 1,
     badge: "Admission Open — Session 2027",
     titleWords: ["The", "Future", "of"],
     highlight: "Education",
     titleWords2: ["Starts", "Here."],
-    subtitle: "Empowering the next generation through the English Version National Curriculum, world-class faculty, and a legacy of 20+ years of excellence.",
+    subtitle:
+      "Empowering the next generation through the English Version National Curriculum, world-class faculty, and a legacy of 20+ years of excellence.",
     ctaText: "Apply for Admission",
     ctaLink: "/admission",
   },
@@ -30,10 +48,11 @@ const SLIDES = [
     titleWords: ["Where", "Innovation"],
     highlight: "Meets",
     titleWords2: ["Tradition."],
-    subtitle: "A campus designed for the future. From advanced science labs to a vast library, we provide the perfect environment for your child to thrive.",
+    subtitle:
+      "A campus designed for the future. From advanced science labs to a vast library, we provide the perfect environment for your child to thrive.",
     ctaText: "Explore Campus",
     ctaLink: "/about",
-  }
+  },
 ];
 
 // ==========================================
@@ -77,9 +96,11 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 // ==========================================
 function LiveVisitors() {
   const [count, setCount] = useState(24);
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setCount(prev => Math.max(15, prev + Math.floor(Math.random() * 5) - 2));
+      if (document.hidden) return;
+      setCount((prev) => Math.max(15, prev + Math.floor(Math.random() * 5) - 2));
     }, 4000);
     return () => clearInterval(timer);
   }, []);
@@ -106,17 +127,36 @@ function LiveVisitors() {
 // ==========================================
 // FLOATING PARTICLES
 // ==========================================
-function FloatingParticles() {
-  const particles = useMemo(() =>
-    Array.from({ length: 12 }).map((_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      size: Math.random() * 2 + 1,
-      duration: Math.random() * 20 + 20,
-      delay: Math.random() * 15,
-      opacity: Math.random() * 0.3 + 0.15,
-    })),
-  []);
+type Particle = {
+  id: number;
+  x: number;
+  size: number;
+  duration: number;
+  delay: number;
+  opacity: number;
+};
+
+function FloatingParticles({ reduced }: { reduced: boolean }) {
+  const [particles, setParticles] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    if (reduced) {
+      setParticles([]);
+      return;
+    }
+    setParticles(
+      Array.from({ length: 12 }).map((_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        size: Math.random() * 2 + 1,
+        duration: Math.random() * 20 + 20,
+        delay: Math.random() * 15,
+        opacity: Math.random() * 0.3 + 0.15,
+      }))
+    );
+  }, [reduced]);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -143,17 +183,25 @@ function FloatingParticles() {
 // ==========================================
 // AURORA BACKGROUND
 // ==========================================
-function AuroraBackground() {
+function AuroraBackground({ reduced }: { reduced: boolean }) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       <motion.div
-        animate={{ x: [0, 60, 0, -60, 0], y: [0, -60, -100, -60, 0], scale: [1, 1.15, 1.1, 0.95, 1] }}
+        animate={
+          reduced
+            ? false
+            : { x: [0, 60, 0, -60, 0], y: [0, -60, -100, -60, 0], scale: [1, 1.15, 1.1, 0.95, 1] }
+        }
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px] opacity-30"
         style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
       />
       <motion.div
-        animate={{ x: [0, -100, 0, 100, 0], y: [0, 40, 100, 40, 0], scale: [1, 0.9, 1.15, 1, 1] }}
+        animate={
+          reduced
+            ? false
+            : { x: [0, -100, 0, 100, 0], y: [0, 40, 100, 40, 0], scale: [1, 0.9, 1.15, 1, 1] }
+        }
         transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }}
         className="absolute top-1/3 right-0 w-[450px] h-[450px] rounded-full blur-[120px] opacity-25"
         style={{ background: "radial-gradient(circle, #f59e0b, transparent 70%)" }}
@@ -166,7 +214,9 @@ function AuroraBackground() {
 // MAIN HERO COMPONENT
 // ==========================================
 export function Hero() {
+  const reduced = useReducedMotion() ?? false;
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHoverPaused, setIsHoverPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Interactive spotlight
@@ -177,23 +227,59 @@ export function Hero() {
 
   const spotlight = useTransform(
     [springX, springY],
-    ([x, y]) => `radial-gradient(800px circle at ${x}px ${y}px, rgba(255, 255, 255, 0.06), transparent 50%)`
+    ([x, y]) =>
+      `radial-gradient(800px circle at ${x}px ${y}px, rgba(255, 255, 255, 0.06), transparent 50%)`
   );
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
-  };
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (reduced || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    },
+    [reduced, mouseX, mouseY]
+  );
 
-  // Auto-advance slides
+  // ---- Unified slide progress ----
+  const progress = useMotionValue(0);
+  const progressX = useTransform(progress, [0, 1], ["-100%", "0%"]);
+
+  // Reset progress whenever the slide changes
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
-    }, 9000);
-    return () => clearInterval(timer);
-  }, []);
+    progress.set(0);
+  }, [currentSlide, progress]);
+
+  // Drive the progress bar + auto-advance from a single rAF loop
+  useEffect(() => {
+    if (isHoverPaused || reduced) return;
+
+    let rafId = 0;
+    let last = performance.now();
+
+    const tick = (now: number) => {
+      // Cap delta (protects against tab-return / long pauses)
+      const delta = Math.min(now - last, 100);
+      last = now;
+
+      if (document.hidden) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
+      const next = progress.get() + delta / SLIDE_DURATION_MS;
+      if (next >= 1) {
+        progress.set(0);
+        setCurrentSlide((s) => (s + 1) % SLIDES.length);
+      } else {
+        progress.set(next);
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [isHoverPaused, reduced, progress]);
 
   const slide = SLIDES[currentSlide];
 
@@ -201,47 +287,44 @@ export function Hero() {
     <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHoverPaused(true)}
+      onMouseLeave={() => setIsHoverPaused(false)}
+      onFocusCapture={() => setIsHoverPaused(true)}
+      onBlurCapture={() => setIsHoverPaused(false)}
       className="relative h-[100svh] min-h-[640px] max-h-[900px] w-full flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617]"
     >
-      
-      {/* ===== LAYER 1: Deep Gradient Background (Replaces Image) ===== */}
+      {/* ===== LAYER 1: Deep gradient background ===== */}
       <div className="absolute inset-0 z-0">
-        {/* Core dark background to ensure text readability */}
         <div className="absolute inset-0 bg-[#020617]/80" />
-        
-        {/* Radial gradient for depth */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,#020617_90%)]" />
-        
-        {/* Top and Bottom fades */}
         <div className="absolute top-0 inset-x-0 h-32 z-0 bg-gradient-to-b from-[#020617] to-transparent" />
         <div className="absolute bottom-0 inset-x-0 h-40 z-0 bg-gradient-to-t from-[#020617] to-transparent" />
       </div>
 
-      {/* ===== LAYER 2: Aurora + Particles + Grid + Spotlight ===== */}
-      <AuroraBackground />
-      <FloatingParticles />
+      {/* ===== LAYER 2: Effects ===== */}
+      <AuroraBackground reduced={reduced} />
+      <FloatingParticles reduced={reduced} />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px] opacity-20 z-0 pointer-events-none" />
-      <motion.div style={{ background: spotlight }} className="absolute inset-0 z-0 pointer-events-none" />
+      {!reduced && (
+        <motion.div style={{ background: spotlight }} className="absolute inset-0 z-0 pointer-events-none" />
+      )}
 
-      {/* Top edge-light hairline */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent z-10 pointer-events-none" />
 
       {/* ===== LAYER 3: MAIN CONTENT ===== */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 lg:px-8 pt-20 pb-4">
-        
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0 }}
+            initial={reduced ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            exit={reduced ? undefined : { opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.4 }}
             className="flex flex-col items-center text-center w-full max-w-5xl"
           >
-            
             {/* Badge */}
             <motion.div
-              initial={{ opacity: 0, y: -15 }}
+              initial={{ opacity: 0, y: reduced ? 0 : -15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
               className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/15 ring-1 ring-inset ring-white/10 text-white text-[11px] md:text-xs font-black uppercase tracking-[0.16em] mb-7 shadow-2xl shadow-black/30 group cursor-pointer hover:bg-white/[0.1] hover:border-white/25 transition-all duration-300"
@@ -252,30 +335,28 @@ export function Hero() {
               <ArrowRight className="h-3.5 w-3.5 text-white/60 group-hover:translate-x-1 transition-all duration-300 relative" strokeWidth={2.5} />
             </motion.div>
 
-            {/* ===== HEADLINE ===== */}
-            <h1 
-              className="font-black text-white text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tighter font-display mb-6 drop-shadow-[0_8px_32px_rgba(0,0,0,0.9)] w-full flex flex-col items-center gap-1 md:gap-2"
-            >
+            {/* Headline */}
+            <h1 className="font-black text-white text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tighter font-display mb-6 drop-shadow-[0_8px_32px_rgba(0,0,0,0.9)] w-full flex flex-col items-center gap-1 md:gap-2">
               <motion.span
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: reduced ? 0 : 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
                 className="block text-white/95"
               >
                 {slide.titleWords.join(" ")}
               </motion.span>
-              
+
               <motion.span
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: reduced ? 0 : 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
                 className="gradient-text block"
               >
                 {slide.highlight}
               </motion.span>
-              
+
               <motion.span
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: reduced ? 0 : 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
                 className="block text-white/95"
@@ -286,7 +367,7 @@ export function Hero() {
 
             {/* Subtitle */}
             <motion.p
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: reduced ? 0 : 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 1.0, ease: EASE }}
               className="text-white/85 text-sm sm:text-base lg:text-lg font-medium leading-relaxed mb-9 text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] max-w-2xl mx-auto"
@@ -296,7 +377,7 @@ export function Hero() {
 
             {/* CTAs */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: reduced ? 0 : 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 1.2, ease: EASE }}
               className="flex flex-col sm:flex-row gap-3 mb-7 w-full sm:w-auto justify-center"
@@ -326,28 +407,31 @@ export function Hero() {
               </Link>
             </motion.div>
 
-            {/* Live Visitors */}
             <LiveVisitors />
-
           </motion.div>
         </AnimatePresence>
-
       </div>
 
       {/* ===== LAYER 4: INLINE TRUST BAR ===== */}
       <div className="relative z-20 border-t border-white/10 bg-black/60 backdrop-blur-2xl">
-        
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            
             {/* Left: Social Proof */}
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2.5">
-                {[11, 12, 13, 14].map((n) => (
-                  <div key={n} className="relative w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--bg-soft)] overflow-hidden ring-1 ring-inset ring-white/10 shadow-sm shadow-black/40 hover:scale-110 hover:z-10 transition-all duration-300">
-                    <img src={`https://i.pravatar.cc/100?img=${n}`} alt="Parent" className="w-full h-full object-cover" />
+                {AVATAR_IDS.map((n) => (
+                  <div
+                    key={n}
+                    className="relative w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--bg-soft)] overflow-hidden ring-1 ring-inset ring-white/10 shadow-sm shadow-black/40 hover:scale-110 hover:z-10 transition-all duration-300"
+                  >
+                    <img
+                      src={`https://i.pravatar.cc/100?img=${n}`}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
                 <div className="w-8 h-8 rounded-full border-2 border-[#020617] bg-[var(--primary)] text-white grid place-items-center text-[10px] font-black ring-1 ring-inset ring-white/20 shadow-sm shadow-[var(--primary)]/30">
@@ -393,7 +477,6 @@ export function Hero() {
                 <p className="text-[9px] font-black text-white/45 uppercase tracking-[0.18em] mt-1.5">Years</p>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -405,16 +488,14 @@ export function Hero() {
             key={s.id}
             onClick={() => setCurrentSlide(idx)}
             aria-label={`Go to slide ${idx + 1}`}
+            aria-current={currentSlide === idx ? "true" : undefined}
             className={`relative h-1 rounded-full transition-all duration-500 overflow-hidden ring-1 ring-inset ring-white/10 ${
               currentSlide === idx ? "w-12 bg-white/25" : "w-1.5 bg-white/20 hover:bg-white/50"
             }`}
           >
             {currentSlide === idx && (
               <motion.div
-                key={currentSlide}
-                initial={{ x: "-100%" }}
-                animate={{ x: "0%" }}
-                transition={{ duration: 9, ease: "linear" }}
+                style={{ x: progressX }}
                 className="absolute inset-0 bg-gradient-to-r from-[var(--primary)] to-amber-400 shadow-sm shadow-[var(--primary)]/50"
               />
             )}
@@ -437,13 +518,12 @@ export function Hero() {
         </span>
         <div className="w-5 h-8 rounded-full border border-white/30 ring-1 ring-inset ring-white/10 flex justify-center pt-1.5 bg-white/[0.04] backdrop-blur-sm">
           <motion.div
-            animate={{ y: [0, 6, 0] }}
+            animate={reduced ? false : { y: [0, 6, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="w-0.5 h-1.5 rounded-full bg-white/70"
           />
         </div>
       </motion.div>
-
     </section>
   );
 }
